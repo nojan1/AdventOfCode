@@ -27,7 +27,7 @@ namespace Day1
         public int Length { get; set; }
     }
 
-    class Position
+    public class Position
     {
         public int X { get; set; }
         public int Y { get; set; }
