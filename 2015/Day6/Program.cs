@@ -28,9 +28,14 @@ namespace Day6
                         if (line.Contains("on"))
                         {
                             lights[x, y]++;
+                            //lights[x, y] = 1;
                         }else if (line.Contains("toggle"))
                         {
                             lights[x, y] += 2;
+                            //if (lights[x, y] > 0)
+                            //    lights[x, y] = 0;
+                            //else
+                            //    lights[x, y] = 1;
                         }
                         else
                         {
@@ -47,6 +52,7 @@ namespace Day6
 
             for (int x = 0; x < 1000; x++)
                 for (int y = 0; y < 1000; y++)
+                    //count += lights[x, y] > 0 ? 1 : 0;
                     count += lights[x, y];
 
             Console.WriteLine("Light count is: " + count.ToString());

@@ -11,7 +11,7 @@ namespace Day4
     {
         static void Main(string[] args)
         {
-            string secretKey = "iwrupvqb";
+            string secretKey = "bgvyzdsv";
 
             int answer = 0;
             while (true)
