@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Day5
@@ -11,36 +12,24 @@ namespace Day5
     {
         static void Main(string[] args)
         {
-            var vowels = "aeiou".ToCharArray();
-            var bad = new string[] { "ab", "cd", "pq", "xy" };
-            int nice = 0;
-
-            foreach (var str in File.ReadAllLines("Input.txt"))
+            var rulesetA = new Func<string, bool>[]
             {
-                if(str.ToCharArray().Count(c => vowels.Contains(c)) >= 3 
-                    && LetterRepeats(str) 
-                    && !bad.Any(b => str.Contains(b))){
+                new Func<string, bool>(s => s.Count(c => "aeiou".Contains(c)) >= 3),
+                new Func<string, bool>(s => s.Any(c => s.Contains(c.ToString() + c.ToString()))),
+                new Func<string, bool>(s => !new string[] { "ab", "cd", "pq", "xy" }.Any(b => s.Contains(b)))
+            };
 
-                    nice++;
-                }
-            }
+            var rulesetB = new Func<string, bool>[]
+            {
+                new Func<string, bool>(s => Regex.IsMatch(s, @"(..).*?\1")),
+                new Func<string, bool>(s => Regex.IsMatch(s, @"(.)(.)\1"))
+            };
+
+            var nice = File.ReadAllLines("Input.txt")
+                           .Count(s => rulesetB.All(r => r.Invoke(s)));
 
             Console.WriteLine("{0} strings are nice", nice);
             Console.Read();
-        }
-
-        static bool LetterRepeats(string text)
-        {
-            foreach(char letter in text)
-            {
-                string search = letter.ToString() + letter.ToString();
-                if (text.Contains(search))
-                {
-                    return true;
-                }                
-            }
-
-            return false;
         }
     }
 }
