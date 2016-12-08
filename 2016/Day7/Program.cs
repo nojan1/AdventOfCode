@@ -30,13 +30,13 @@ namespace Day7
 
         public bool SupportsTLS()
         {
-            return GetAbbaLikeStringsFromSubString(RawAddress, AbbaType.ABBA).Count > 0 && !HypernetSequences.Any(s => GetAbbaLikeStringsFromSubString(s, AbbaType.ABBA).Count > 0);
+            return GetAbbaLikeStringsFromSubString(RawAddress, AbbaType.ABBA).Count > 0 && 
+                   !HypernetSequences.Any(s => GetAbbaLikeStringsFromSubString(s, AbbaType.ABBA).Count > 0);
         }
 
         public bool SupportsSSL()
         {
-            return Regex.Split(RawAddress, @"\[.*?\]").Any(ap => GetAbbaLikeStringsFromSubString(ap, AbbaType.ABA)
-                                                        .Any(aba =>
+            return Regex.Split(RawAddress, @"\[.*?\]").Any(ap => GetAbbaLikeStringsFromSubString(ap, AbbaType.ABA).Any(aba =>
             {
                 var bab = aba[1].ToString() + aba[0].ToString() + aba[1].ToString();
                 return HypernetSequences.Any(x => GetAbbaLikeStringsFromSubString(x, AbbaType.ABA).Contains(bab));
