@@ -10,29 +10,95 @@ namespace Day7
 {
     class Program
     {
+        class TheForce
+        {
+            private Dictionary<string, List<Component>> dependencies = new Dictionary<string, List<Component>>();
+            private List<Component> withNoDependencies = new List<Component>();
+
+            public void Register(Component component, List<Wire> dependentWires)
+            {
+                if (dependentWires.All(w => w.IsFake))
+                {
+                    withNoDependencies.Add(component);
+                }
+                else
+                {
+                    foreach(var wire in dependentWires)
+                    {
+                        if (wire.IsFake)
+                            continue;
+
+                        if(!dependencies.ContainsKey(wire.Name) || dependencies[wire.Name] == null)
+                        {
+                            dependencies[wire.Name] = new List<Component> { component };
+                            wire.SignalUpdated += Wire_SignalUpdated;
+                        }
+                        else
+                        {
+                            dependencies[wire.Name].Add(component);
+                        }
+                    }
+                }
+            }
+
+            private void Wire_SignalUpdated(object sender, EventArgs e)
+            {
+                var wireName = (sender as Wire).Name;
+                if (dependencies.ContainsKey(wireName))
+                {
+                    foreach (var component in dependencies[wireName])
+                    {
+                        component.Execute();
+                    }
+                }
+            }
+
+            public void Run()
+            {
+                foreach (var component in withNoDependencies)
+                    component.Execute();
+            }
+
+        }
+
         class Wire
         {
             public string Name { get; set; }
 
-            private int signal;
+            public bool GottenSignal { get; private set; }
+            public bool IsFake { get; set; }
+
+            private int firstValueBackup = -1;
+            private int signal = 0;
             public int Signal
             {
                 get { return signal; }
                 set
                 {
-                    if (signal == value)
-                        return;
+                    GottenSignal = true;
 
                     signal = value;
 
                     if (!string.IsNullOrEmpty(Name))
                     {
-                        SignalUpdated(signal);
+                        SignalUpdated(this, new EventArgs());
                     }
+
+                    if (firstValueBackup == -1)
+                        firstValueBackup = value;
                 }
             }
 
-            public event Action<int> SignalUpdated = delegate { };
+            public event EventHandler SignalUpdated = delegate { };
+
+            public void Reset(int signalValue = 0)
+            {
+                GottenSignal = false;
+                signal = signalValue;
+
+                if (IsFake && firstValueBackup != -1)
+                    signal = firstValueBackup;
+            }
         }
 
         class WireBundle
@@ -45,7 +111,10 @@ namespace Day7
                 int value;
                 if (int.TryParse(name, out value))
                 {
-                    return new Wire { Signal = value };
+                    var fakeWire = new Wire { Signal = value, IsFake = true };
+                    wires.Add(fakeWire);
+
+                    return fakeWire;
                 }
 
                 var wire = wires.FirstOrDefault(w => w.Name == name.ToLower());
@@ -57,62 +126,82 @@ namespace Day7
 
                 return wire;
             }
+
+            public void Reset()
+            {
+                foreach(var wire in wires)
+                {
+                    wire.Reset();
+                }
+            }
+
+            public override string ToString()
+            {
+                return string.Join(Environment.NewLine, wires.Select(w => $"{w.Name}: {w.Signal}"));
+            }
         }
 
-        #region Components
+        
 
         abstract class Component
         {
-            public void Setup(Wire input1, Wire input2, Wire output)
+            public void Setup(Wire input1, Wire input2, Wire output, TheForce force)
             {
-                if (input1 != null)
-                {
-                    Input1 = input1;
-                    Input1.SignalUpdated += OnSignalUpdated;
-                }
-
                 Input2 = input2;
                 Output = output;
 
-                Input2.SignalUpdated += OnSignalUpdated;
+                if (input1 != null)
+                {
+                    Input1 = input1;
+
+                    force.Register(this, new List<Wire> { Input1, Input2 });
+                }
+                else
+                {
+                    force.Register(this, new List<Wire> { Input2 });
+                }
             }
 
             public Wire Input1 { get; private set; }
             public Wire Input2 { get; private set; }
             public Wire Output { get; private set; }
 
-            public bool HasExecuted { get; set; }
+            protected int lastInput1Value = -2;
+            protected int lastInput2Value = -2;
 
-            private void OnSignalUpdated(int newValue)
-            {
-                Execute();
-            }
+            public bool HasExecuted { get; private set; }
 
             public virtual bool CanExecute()
             {
-                return Input1.Signal != 0 && Input2.Signal != 0;
+                //return (HasExecuted || (Input1 != null && Input1.Signal != lastInput1Value) || Input2.Signal != lastInput2Value)
+                //    && Input1.GottenSignal && Input2.GottenSignal;
+
+                return !HasExecuted && Input1.GottenSignal && Input2.GottenSignal;
             }
 
             public void Execute()
             {
                 if (CanExecute())
                 {
-                    if (Input1 != null)
-                        Input1.SignalUpdated -= OnSignalUpdated;
-
-                    Input2.SignalUpdated -= OnSignalUpdated;
-
                     ExecuteImpl();
                     HasExecuted = true;
                 }
             }
 
-            public abstract void ExecuteImpl();
+            public void Reset()
+            {
+                lastInput1Value = lastInput2Value = -2;
+                HasExecuted = false;
+            }
+
+            protected abstract void ExecuteImpl();
         }
+
+        #region Components
 
         class AND : Component
         {
-            public override void ExecuteImpl()
+            protected override void ExecuteImpl()
             {
                 Output.Signal = Input1.Signal & Input2.Signal;
             }
@@ -120,7 +209,7 @@ namespace Day7
 
         class OR : Component
         {
-            public override void ExecuteImpl()
+            protected override void ExecuteImpl()
             {
                 Output.Signal = Input1.Signal | Input2.Signal;
             }
@@ -128,7 +217,7 @@ namespace Day7
 
         class LSHIFT : Component
         {
-            public override void ExecuteImpl()
+            protected override void ExecuteImpl()
             {
                 Output.Signal = Input1.Signal << Input2.Signal;
             }
@@ -136,7 +225,7 @@ namespace Day7
 
         class RSHIFT : Component
         {
-            public override void ExecuteImpl()
+            protected override void ExecuteImpl()
             {
                 Output.Signal = Input1.Signal >> Input2.Signal;
             }
@@ -146,12 +235,25 @@ namespace Day7
         {
             public override bool CanExecute()
             {
-                return Input2.Signal != 0;
+                return (!HasExecuted || Input2.Signal != lastInput2Value) && Input2.GottenSignal;
             }
 
-            public override void ExecuteImpl()
+            protected override void ExecuteImpl()
             {
                 Output.Signal = ~Input2.Signal;
+            }
+        }
+
+        class ASSIGN : Component
+        {
+            protected override void ExecuteImpl()
+            {
+                Output.Signal = Input2.Signal;
+            }
+
+            public override bool CanExecute()
+            {
+                return (!HasExecuted || Input2.Signal != lastInput2Value) && Input2.GottenSignal;
             }
         }
 
@@ -159,6 +261,7 @@ namespace Day7
 
         static void Main(string[] args)
         {
+            var force = new TheForce();
             var bundle = new WireBundle();
             var components = new List<Component>();
 
@@ -168,7 +271,7 @@ namespace Day7
 
                 var outputWire = bundle.GetOrCreate(parts[1].Trim());
 
-                if(components.Any(c => c.Output == outputWire))
+                if (components.Any(c => c.Output == outputWire))
                 {
                     continue;
                 }
@@ -185,34 +288,45 @@ namespace Day7
                     var component = ComponentFromName(leftSideParts[offset].Trim());
                     component.Setup(offset == 1 ? bundle.GetOrCreate(leftSideParts[0].Trim()) : null,
                                     bundle.GetOrCreate(leftSideParts[offset + 1].Trim()),
-                                    outputWire);
-
-                    component.Execute();
+                                    outputWire,
+                                    force);
 
                     components.Add(component);
                 }
                 else if (leftSideParts.Length == 1)
                 {
-                    outputWire.Signal = bundle.GetOrCreate(leftSideParts[0]).Signal;
-                }else
+                    var component = new ASSIGN();
+                    component.Setup(null,
+                                    bundle.GetOrCreate(leftSideParts[0].Trim()),
+                                    outputWire, 
+                                    force);
+
+                    components.Add(component);
+                }
+                else
                 {
                     throw new Exception("Bad line?");
                 }
+
             }
 
-            while (components.Any(c => !c.HasExecuted))
-            {
-                foreach (var component in components.OrderBy(c => Guid.NewGuid()))
-                {
-                    if (!component.HasExecuted && component.CanExecute())
-                    {
-                        component.Execute();
-                        component.HasExecuted = true;
+            force.Run();
 
-                        break;
-                    }
-                }
-            }
+            var wireASignal = bundle.GetOrCreate("a").Signal;
+
+            bundle.Reset();
+            foreach (var component in components)
+                component.Reset();
+
+            //var overridingComponent = new ASSIGN();
+            //overridingComponent.Setup(null,
+            //                          bundle.GetOrCreate(wireASignal.ToString()),
+            //                          bundle.GetOrCreate("b"),
+            //                          force);
+
+            bundle.GetOrCreate("b").Reset(wireASignal);
+
+            force.Run();
 
             Console.WriteLine($"Value for wire a is {bundle.GetOrCreate("a").Signal}");
         }
