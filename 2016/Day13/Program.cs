@@ -81,7 +81,7 @@ namespace Day13
                         new WeightedCoordinate(position.X, position.Y - 1, position.Count + 1),
                         new WeightedCoordinate(position.X - 1, position.Y, position.Count + 1)
                     };
-
+                    
                     var possibleNewPositionsCopy = possibleNewPositions.ToList();
                     foreach (var possibleNewPosition in possibleNewPositionsCopy)
                     {
