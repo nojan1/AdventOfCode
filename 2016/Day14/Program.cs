@@ -18,9 +18,13 @@ namespace Day14
     {
         const bool USEKEYSTRETCHING = true;
 
+        static MD5 md5;
         static string Hash(string data)
         {
-            var hash = MD5.Create().ComputeHash(Encoding.ASCII.GetBytes(data));
+            if (md5 == null)
+                md5 = MD5.Create();
+
+            var hash = md5.ComputeHash(Encoding.ASCII.GetBytes(data));
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
 
@@ -85,8 +89,13 @@ namespace Day14
 
         static void Main(string[] args)
         {
+            var startTime = DateTime.Now;
+
             var pads = CalculateOneTimePads("ngcjuoqr", 64);
             Console.WriteLine($"Pad value 64 was found on index {pads[63].Index}");
+
+            var timeTaken = DateTime.Now - startTime;
+            Console.WriteLine($"I ran in {timeTaken}");
         }
     }
 }
