@@ -65,7 +65,7 @@ namespace Day15
                 new Disc(1, 3)
             };
 
-            //discs.Add(new Disc(0, 11));
+            discs.Add(new Disc(0, 11));
 
             //var discs = new List<Disc>
             //{
