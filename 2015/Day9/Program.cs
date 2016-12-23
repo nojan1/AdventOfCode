@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Combinatorics.Collections;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -45,8 +46,8 @@ namespace Day9
 
         public int GetDistance(string from, string to)
         {
-            var fromToDistance = fromToDistances.FirstOrDefault(x => (x.From == from && x.To == to));// ||
-                                                                                                     // (x.To == from && x.From == to));
+            var fromToDistance = fromToDistances.FirstOrDefault(x => (x.From == from && x.To == to) ||
+                                                                     (x.To == from && x.From == to));
             if (fromToDistance == null)
                 //throw new Exception($"No distance logged between {from} and {to}");
                 return -1;
@@ -60,7 +61,8 @@ namespace Day9
         static void Main(string[] args)
         {
             var locationDb = new LocationDatabase();
-            var distances = GeneratePermutations(locationDb.KnownLocations.ToList()).Select(l =>
+            
+            var distances = new Permutations<string>(locationDb.KnownLocations.ToList(), GenerateOption.WithoutRepetition).Select(l =>
             {
                 var distance = 0;
 
@@ -68,7 +70,7 @@ namespace Day9
                 {
                     var localDistance = locationDb.GetDistance(l.ElementAt(i), l.ElementAt(i + 1));
                     if (localDistance == -1)
-                        return 9999;
+                        return int.MaxValue;
 
                     distance += localDistance;
                 }
@@ -77,61 +79,6 @@ namespace Day9
             }).ToArray();
 
             Console.WriteLine($"The shortest distance is: {distances.Min()}");
-        }
-
-        private static List<List<T>> GeneratePermutations<T>(List<T> items)
-        {
-            // Make an array to hold the
-            // permutation we are building.
-            T[] current_permutation = new T[items.Count];
-
-            // Make an array to tell whether
-            // an item is in the current selection.
-            bool[] in_selection = new bool[items.Count];
-
-            // Make a result list.
-            List<List<T>> results = new List<List<T>>();
-
-            // Build the combinations recursively.
-            PermuteItems<T>(items, in_selection,
-                current_permutation, results, 0);
-
-            // Return the results.
-            return results;
-        }
-
-        private static void PermuteItems<T>(List<T> items, bool[] in_selection,
-    T[] current_permutation, List<List<T>> results,
-    int next_position)
-        {
-            // See if all of the positions are filled.
-            if (next_position == items.Count)
-            {
-                // All of the positioned are filled.
-                // Save this permutation.
-                results.Add(current_permutation.ToList());
-            }
-            else
-            {
-                // Try options for the next position.
-                for (int i = 0; i < items.Count; i++)
-                {
-                    if (!in_selection[i])
-                    {
-                        // Add this item to the current permutation.
-                        in_selection[i] = true;
-                        current_permutation[next_position] = items[i];
-
-                        // Recursively fill the remaining positions.
-                        PermuteItems<T>(items, in_selection,
-                            current_permutation, results,
-                            next_position + 1);
-
-                        // Remove the item from the current permutation.
-                        in_selection[i] = false;
-                    }
-                }
-            }
         }
     }
 }

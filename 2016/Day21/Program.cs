@@ -70,6 +70,7 @@ namespace Day21
                             var steps = Convert.ToInt32(parts[2]);
                             data = Rotate(data, (deScramble ? (parts[1] == "left" ? "right" : "left") : parts[1]), steps);
                         }
+
                         break;
                     case "move":
                         from = Convert.ToInt32(parts[2]);
