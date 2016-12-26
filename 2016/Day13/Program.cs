@@ -7,7 +7,42 @@ using System.Threading.Tasks;
 
 namespace Day13
 {
-    class Coordinate
+    public static class WeightedCoordinateArrayExtension
+    {
+        public static void PrintToFile(this List<WeightedCoordinate> coords, string filename)
+        {
+            int maxY = coords.Max(c => c.Y);
+            int maxX = coords.Max(c => c.X);
+
+            using (var writer = new StreamWriter(filename))
+            {
+                for (int y = 0; y <= maxY; y++)
+                {
+                    for (int x = 0; x <= maxX; x++)
+                    {
+                        var weight = coords.FirstOrDefault(c => c.X == x && c.Y == y);
+                        if (weight != null)
+                        {
+                            writer.Write(" " + weight.Count.ToString("d3") + " ");
+                        }
+                        else
+                        {
+                            writer.Write("#####");
+                        }
+                    }
+
+                    writer.WriteLine();
+                }
+            }
+        }
+    }
+
+    public interface IMaze
+    {
+        bool IsWall(int x, int y);
+    }
+
+    public class Coordinate : IComparable<Coordinate>
     {
         public int X { get; set; }
         public int Y { get; set; }
@@ -28,9 +63,14 @@ namespace Day13
         {
             return $"{X}x{Y}".GetHashCode();
         }
+
+        public int CompareTo(Coordinate other)
+        {
+            return Equals(other) ? 0 : 1;
+        }
     }
 
-    class WeightedCoordinate : Coordinate
+    public class WeightedCoordinate : Coordinate
     {
         public int Count { get; set; }
 
@@ -40,7 +80,7 @@ namespace Day13
         }
     }
 
-    class Maze
+    public class Maze : IMaze
     {
         private int _designersMagicNumber;
 
@@ -56,11 +96,11 @@ namespace Day13
         }
     }
 
-    class PathFinder
+    public class PathFinder
     {
-        private Maze _maze;
+        private IMaze _maze;
 
-        public PathFinder(Maze maze)
+        public PathFinder(IMaze maze)
         {
             _maze = maze;
         }
@@ -68,61 +108,63 @@ namespace Day13
         public List<WeightedCoordinate> AssignWeight(Coordinate from, Coordinate to)
         {
             var weightedPositions = new List<WeightedCoordinate>() { new WeightedCoordinate(to.X, to.Y, 0) };
+            var positionsRequiringCheck = new List<WeightedCoordinate>(weightedPositions);
 
-            while (true)
+            List<WeightedCoordinate> possibleNewPositions = null;
+            while (positionsRequiringCheck.Any())
             {
-                List<WeightedCoordinate> possibleNewPositions = null;
-                foreach (var position in weightedPositions)
-                {
-                    possibleNewPositions = new List<WeightedCoordinate>
+                var position = positionsRequiringCheck.First();
+
+                possibleNewPositions = new List<WeightedCoordinate>
                     {
                         new WeightedCoordinate(position.X, position.Y + 1, position.Count + 1),
                         new WeightedCoordinate(position.X + 1, position.Y, position.Count + 1),
                         new WeightedCoordinate(position.X, position.Y - 1, position.Count + 1),
                         new WeightedCoordinate(position.X - 1, position.Y, position.Count + 1)
                     };
-                    
-                    var possibleNewPositionsCopy = possibleNewPositions.ToList();
-                    foreach (var possibleNewPosition in possibleNewPositionsCopy)
+
+                var possibleNewPositionsCopy = possibleNewPositions.ToList();
+                foreach (var possibleNewPosition in possibleNewPositionsCopy)
+                {
+                    if (_maze.IsWall(possibleNewPosition.X, possibleNewPosition.Y))
                     {
-                        if (_maze.IsWall(possibleNewPosition.X, possibleNewPosition.Y))
-                        {
-                            possibleNewPositions.Remove(possibleNewPosition);
-                            continue;
-                        }
-
-                        if (weightedPositions.Contains(possibleNewPosition))
-                        {
-                            possibleNewPositions.Remove(possibleNewPosition);
-                            continue;
-                        }
-
-                        if (possibleNewPosition.X < 0 || possibleNewPosition.Y < 0)
-                        {
-                            possibleNewPositions.Remove(possibleNewPosition);
-                            continue;
-                        }
+                        possibleNewPositions.Remove(possibleNewPosition);
+                        continue;
                     }
 
-                    if (possibleNewPositions.Any())
-                        break;
+                    if (weightedPositions.Contains(possibleNewPosition))
+                    {
+                        possibleNewPositions.Remove(possibleNewPosition);
+                        continue;
+                    }
+
+                    if (possibleNewPosition.X < 0 || possibleNewPosition.Y < 0)
+                    {
+                        possibleNewPositions.Remove(possibleNewPosition);
+                        continue;
+                    }
                 }
+
+                positionsRequiringCheck.RemoveAt(0);
 
                 if (possibleNewPositions.Any())
                 {
                     weightedPositions.AddRange(possibleNewPositions);
+                    positionsRequiringCheck.AddRange(possibleNewPositions);
 
-                    if (weightedPositions.Contains(from))
+                    if (from != null && weightedPositions.Contains(from))
                     {
                         return weightedPositions;
                     }
                 }
-                else
-                {
-                    return weightedPositions;
-                }
-
             }
+
+            return weightedPositions;
+        }
+
+        public List<WeightedCoordinate> FindAllPathsFrom(Coordinate from)
+        {
+            return AssignWeight(null, from);
         }
     }
 
