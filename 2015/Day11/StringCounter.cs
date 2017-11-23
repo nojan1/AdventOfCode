@@ -19,7 +19,7 @@ namespace Day11
 
         public void Increment()
         {
-            for(int i = chars.Count - 1; IncrementPosition(i) && i > 0; i--) { }
+            for(int i = chars.Count - 1; IncrementPosition(i) && i > 0; i--) { /* Nothing here ;) */; }
         }
 
         private bool IncrementPosition(int position)
