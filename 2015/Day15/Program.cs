@@ -22,7 +22,8 @@ namespace Day15
         public List<(int, Ingredient)> Ingredients { get; set; } = new List<(int, Ingredient)>();
         public int Score
         {
-            get {
+            get
+            {
                 int sumCapacity = Ingredients.Sum(x => x.Item1 * x.Item2.Capacity);
                 int sumDurability = Ingredients.Sum(x => x.Item1 * x.Item2.Durability);
                 int sumFlavor = Ingredients.Sum(x => x.Item1 * x.Item2.Flavor);
@@ -67,19 +68,15 @@ namespace Day15
                 {
                     for (int ing3 = 0; ing3 <= 100; ing3++)
                     {
-                        for (int ing4 = 0; ing4 <= 100; ing4++)
-                        {
-                            if (ing1 + ing2 + ing3 + ing4 == 100)
-                            {
-                                var recepie = new Recepie();
-                                recepie.Ingredients.Add((ing1, ingredients[0]));
-                                recepie.Ingredients.Add((ing2, ingredients[1]));
-                                recepie.Ingredients.Add((ing3, ingredients[2]));
-                                recepie.Ingredients.Add((ing4, ingredients[3]));
+                        int ing4 = 100 - ing1 - ing2 - ing3;
 
-                                recepies.Add(recepie);
-                            }
-                        }
+                        var recepie = new Recepie();
+                        recepie.Ingredients.Add((ing1, ingredients[0]));
+                        recepie.Ingredients.Add((ing2, ingredients[1]));
+                        recepie.Ingredients.Add((ing3, ingredients[2]));
+                        recepie.Ingredients.Add((ing4, ingredients[3]));
+
+                        recepies.Add(recepie);
                     }
                 }
             }
