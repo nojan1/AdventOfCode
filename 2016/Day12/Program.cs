@@ -11,9 +11,9 @@ namespace Day12
     {
         static void Main(string[] args)
         {
-            var cpu = new BunnyPU();
+            var cpu = new BunnyPU(File.ReadAllLines("input.txt").Select(t => t.Trim()).ToArray());
             cpu.GetRegister("c").Value = 1;
-            cpu.ProcessInstructions(File.ReadAllLines("input.txt").Select(t => t.Trim()).ToArray());
+            cpu.RunToEnd();
 
             Console.Write(string.Join(Environment.NewLine, cpu.Registers.Select(r => r.Name + ": " + r.Value.ToString())));
         }

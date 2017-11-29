@@ -12,11 +12,9 @@ namespace Day23
     {
         static void Main(string[] args)
         {
-            var cpu = new BunnyPU();
+            var cpu = new BunnyPU(File.ReadAllLines("assembunny.txt").Select(t => t.Trim()).ToArray());
             cpu.GetRegister("a").Value = 12;
-            cpu.ProcessInstructions(File.ReadAllLines("assembunny.txt").Select(t => t.Trim()).ToArray());
-
-            Console.WriteLine($"Sending value {cpu.GetRegister("a").Value} to safe");
+            cpu.RunToEnd();
         }
     }
 }

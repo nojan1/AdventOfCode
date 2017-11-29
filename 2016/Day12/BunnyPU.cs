@@ -14,10 +14,15 @@ namespace Day12
 
     public class BunnyPU
     {
+        private string[] instructions;
+
         public List<Register> Registers { get; private set; }
 
-        public BunnyPU()
+        public event Action<int> OnOutput = delegate { };
+
+        public BunnyPU(string[] instructions)
         {
+            this.instructions = instructions;
             Registers = new List<Register>();
         }
 
@@ -33,90 +38,106 @@ namespace Day12
             return register;
         }
 
-        public void ProcessInstructions(string[] instructions)
+        public int RunSingleInstruction(int instructionPointer)
         {
-            for (int instructionPointer = 0; instructionPointer < instructions.Count(); instructionPointer++)
+            if(instructionPointer > instructions.Count() - 1)
             {
-                var instructionParts = instructions[instructionPointer].Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries).Select(t => t.ToLower()).ToArray();
+                return -1;
+            }
 
-                if (instructionParts[0].StartsWith("//"))
-                    continue;
+            var instructionParts = instructions[instructionPointer].Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries).Select(t => t.ToLower()).ToArray();
 
-                switch (instructionParts[0])
-                {
-                    case "cpy":
-                        GetRegister(instructionParts[2]).Value = GetRawOrRegisterValue(instructionParts[1]);
+            if (instructionParts[0].StartsWith("//"))
+                return instructionPointer;
 
-                        break;
-                    case "inc":
-                    case "dec":
-                        GetRegister(instructionParts[1]).Value += instructionParts[0] == "inc" ? 1 : -1;
+            switch (instructionParts[0])
+            {
+                case "cpy":
+                    GetRegister(instructionParts[2]).Value = GetRawOrRegisterValue(instructionParts[1]);
 
-                        break;
-                    case "jnz":
-                        int conditionValue = GetRawOrRegisterValue(instructionParts[1]);
-                        if (conditionValue != 0)
+                    break;
+                case "inc":
+                case "dec":
+                    GetRegister(instructionParts[1]).Value += instructionParts[0] == "inc" ? 1 : -1;
+
+                    break;
+                case "jnz":
+                    int conditionValue = GetRawOrRegisterValue(instructionParts[1]);
+                    if (conditionValue != 0)
+                    {
+                        var pointerChange = GetRawOrRegisterValue(instructionParts[2]);
+                        instructionPointer += pointerChange - 1;
+                    }
+
+                    break;
+                case "tgl":
+                    int instructionToToggle = instructionPointer + GetRawOrRegisterValue(instructionParts[1]);
+                    if (instructionToToggle > 0 && instructionToToggle < instructions.Count())
+                    {
+                        var toggleRow = instructions[instructionToToggle].Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries).Select(t => t.ToLower()).ToArray();
+
+                        if (toggleRow[0].StartsWith("//"))
                         {
-                            var pointerChange = GetRawOrRegisterValue(instructionParts[2]);
-                            instructionPointer += pointerChange - 1;
+                            toggleRow[0] = toggleRow[0].Substring(2);
                         }
 
-                        break;
-                    case "tgl":
-                        int instructionToToggle = instructionPointer + GetRawOrRegisterValue(instructionParts[1]);
-                        if (instructionToToggle > 0 && instructionToToggle < instructions.Count())
+                        if (toggleRow.Length == 3)
                         {
-                            var toggleRow = instructions[instructionToToggle].Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries).Select(t => t.ToLower()).ToArray();
-
-                            if (toggleRow[0].StartsWith("//"))
+                            if (toggleRow[0] == "jnz")
                             {
-                                toggleRow[0] = toggleRow[0].Substring(2);
-                            }
-
-                            if (toggleRow.Length == 3)
-                            {
-                                if (toggleRow[0] == "jnz")
-                                {
-                                    toggleRow[0] = "cpy";
-                                }
-                                else
-                                {
-                                    toggleRow[0] = "jnz";
-                                }
-
-                                int crap;
-                                if (toggleRow[0] == "cpy" && int.TryParse(toggleRow[2], out crap))
-                                {
-                                    toggleRow[0] = "//" + toggleRow[0];
-                                }
+                                toggleRow[0] = "cpy";
                             }
                             else
                             {
-                                if (toggleRow[0] == "inc")
-                                {
-                                    toggleRow[0] = "dec";
-                                }
-                                else
-                                {
-                                    toggleRow[0] = "inc";
-                                }
-
-                                int crap;
-                                if (int.TryParse(toggleRow[1], out crap))
-                                {
-                                    toggleRow[0] = "//" + toggleRow[0];
-                                }
+                                toggleRow[0] = "jnz";
                             }
 
-                            instructions[instructionToToggle] = string.Join(" ", toggleRow);
+                            int crap;
+                            if (toggleRow[0] == "cpy" && int.TryParse(toggleRow[2], out crap))
+                            {
+                                toggleRow[0] = "//" + toggleRow[0];
+                            }
                         }
-                        break;
-                    case "nop":
-                        //Troloolol
-                        break;
-                    default:
-                        throw new Exception("Unsupported instruction: " + instructions[instructionPointer]);
-                }
+                        else
+                        {
+                            if (toggleRow[0] == "inc")
+                            {
+                                toggleRow[0] = "dec";
+                            }
+                            else
+                            {
+                                toggleRow[0] = "inc";
+                            }
+
+                            int crap;
+                            if (int.TryParse(toggleRow[1], out crap))
+                            {
+                                toggleRow[0] = "//" + toggleRow[0];
+                            }
+                        }
+
+                        instructions[instructionToToggle] = string.Join(" ", toggleRow);
+                    }
+                    break;
+                case "out":
+                    OnOutput(GetRawOrRegisterValue(instructionParts[1]));
+
+                    break;
+                case "nop":
+                    //Troloolol
+                    break;
+                default:
+                    throw new Exception("Unsupported instruction: " + instructions[instructionPointer]);
+            }
+
+            return instructionPointer + 1;
+        }
+
+        public void RunToEnd()
+        {
+            for (int instructionPointer = 0; instructionPointer < instructions.Count(); instructionPointer++)
+            {
+                instructionPointer = RunSingleInstruction(instructionPointer) - 1;
             }
         }
 
