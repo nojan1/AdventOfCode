@@ -55,6 +55,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\2015\Common\Common.csproj">
+      <Project>{FB9C8046-3B24-4C95-93C0-1694643D30C5}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Day12\Day12.csproj">
       <Project>{c5c6ae16-0436-4a0f-965e-b021c6d575fe}</Project>
       <Name>Day12</Name>
