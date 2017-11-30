@@ -11,12 +11,14 @@ namespace Day25
 {
     class Runner : GenericParallelTaskRunnerBase<int, bool>
     {
+        private const int NUM_THREADS = 8;
+
         public int CorrectValue { get; private set; }
 
         private string[] _instructions;
         private int a = 7897;
 
-        public Runner(string[] instructions) : base(4)
+        public Runner(string[] instructions) : base(NUM_THREADS)
         {
             _instructions = instructions;
         }
