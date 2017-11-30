@@ -22,7 +22,10 @@ namespace Day9
         {
             get
             {
-                return fromToDistances.Select(x => x.From).Distinct().ToList();
+                var places = fromToDistances.Select(x => x.From).ToList();
+                places.AddRange(fromToDistances.Select(x => x.To));
+
+                return places.Distinct().ToList();
             }
         }
 
@@ -61,7 +64,7 @@ namespace Day9
         static void Main(string[] args)
         {
             var locationDb = new LocationDatabase();
-            
+       
             var distances = new Permutations<string>(locationDb.KnownLocations.ToList(), GenerateOption.WithoutRepetition).Select(l =>
             {
                 var distance = 0;
@@ -79,6 +82,7 @@ namespace Day9
             }).ToArray();
 
             Console.WriteLine($"The shortest distance is: {distances.Min()}");
+            Console.WriteLine($"The longest distance is: {distances.Max()}");
         }
     }
 }
