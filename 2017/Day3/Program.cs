@@ -22,7 +22,7 @@ namespace Day3
 
     class MemoryGrid
     {
-        const string SAVEFILE_FILENAME = "grid.json";
+        protected virtual string SAVEFILE_FILENAME => "grid.json";
 
         enum Direction
         {
@@ -65,7 +65,7 @@ namespace Day3
                 return false;
 
             var contents = JsonConvert.DeserializeObject<SaveFileFormat>(File.ReadAllText(SAVEFILE_FILENAME));
-            if(contents.High >= requiredHigh)
+            if (contents.High >= requiredHigh)
             {
                 Cells = contents.Cells;
                 return true;
@@ -103,12 +103,16 @@ namespace Day3
 
             Cells.Add(lastCell);
 
-            for (int i = 2; i <= highest; i++)
+            int i = 2;
+            int value = 0;
+            while(value <= highest)
             {
                 var nextCord = GetNextCordFromDirection(lastCell.X, lastCell.Y, currentDirection);
+                value = CalculateValue(i, nextCord.x, nextCord.y);
+
                 var newCell = new MemoryCell
                 {
-                    Value = i,
+                    Value = value,
                     X = nextCord.x,
                     Y = nextCord.y
                 };
@@ -122,7 +126,14 @@ namespace Day3
                 {
                     currentDirection = leftTurnDirection;
                 }
+
+                i++;
             }
+        }
+
+        protected virtual int CalculateValue(int i, int x, int y)
+        {
+            return i;
         }
 
         private Direction TurnLeft(Direction direction)
@@ -156,6 +167,29 @@ namespace Day3
         }
     }
 
+    class MemoryGrid2 : MemoryGrid
+    {
+        protected override string SAVEFILE_FILENAME => "grid2.json";
+
+        public MemoryGrid2(int highest) : base(highest)
+        {
+        }
+
+        protected override int CalculateValue(int i, int x, int y)
+        {
+            var topLeft = Cells.FirstOrDefault(c => c.X == x - 1 && c.Y == y - 1)?.Value ?? 0;
+            var top = Cells.FirstOrDefault(c => c.X == x && c.Y == y - 1)?.Value ?? 0;
+            var topRight = Cells.FirstOrDefault(c => c.X == x + 1 && c.Y == y - 1)?.Value ?? 0;
+            var right = Cells.FirstOrDefault(c => c.X == x + 1 && c.Y == y)?.Value ?? 0;
+            var bottomRight = Cells.FirstOrDefault(c => c.X == x + 1 && c.Y == y + 1)?.Value ?? 0;
+            var bottom = Cells.FirstOrDefault(c => c.X == x && c.Y == y + 1)?.Value ?? 0;
+            var bottomLeft = Cells.FirstOrDefault(c => c.X == x - 1 && c.Y == y + 1)?.Value ?? 0;
+            var left = Cells.FirstOrDefault(c => c.X == x - 1 && c.Y == y)?.Value ?? 0;
+
+            return topLeft + top + topRight + right + bottomRight + bottom + bottomLeft + left;
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -167,26 +201,66 @@ namespace Day3
             var valueCell = grid.Cells.First(x => x.Value == input);
             var targetCell = grid.Cells.First(x => x.Value == 1);
 
-            var idealPath = GetIdealPath(grid, valueCell, targetCell).ToList();
+            var numSteps = CalculateNumSteps(valueCell, targetCell);
+
+            Console.WriteLine($"Öhm {numSteps} maybe?");
+
+            var grid2 = new MemoryGrid2(input);
+            var number = grid2.Cells.Max(c => c.Value);
+
+            Console.WriteLine($"The number is {number}");
         }
 
-        static IEnumerable<(int x, int y)> GetIdealPath(MemoryGrid grid, MemoryCell valueCell, MemoryCell targetCell)
+        static int CalculateNumSteps(MemoryCell valueCell, MemoryCell targetCell)
         {
-            if (valueCell.X == targetCell.X)
-                throw new NotImplementedException();
+            int numSteps = 0;
+            var currentPosition = (X: valueCell.X, Y: valueCell.Y);
 
-            if (valueCell.Y == targetCell.Y)
-                throw new NotImplementedException();
-
-            var k = ((double)valueCell.X - (double)targetCell.X) / ((double)valueCell.Y - (double)targetCell.Y);
-            var xChange = targetCell.X < valueCell.X ? -1 : 1;
-
-            for(var x = valueCell.X; x != targetCell.X; x+= xChange)
+            while (currentPosition.X != targetCell.X || currentPosition.Y != targetCell.Y)
             {
-                var y = k * x + valueCell.Y;
-
-                yield return (x, (int)y);
+                if (currentPosition.X > targetCell.X && currentPosition.Y > targetCell.Y)
+                {
+                    currentPosition = (currentPosition.X - 1, currentPosition.Y - 1);
+                    numSteps += 2;
+                }
+                else if (currentPosition.X > targetCell.X && currentPosition.Y < targetCell.Y)
+                {
+                    currentPosition = (currentPosition.X - 1, currentPosition.Y + 1);
+                    numSteps += 2;
+                }
+                else if (currentPosition.X < targetCell.X && currentPosition.Y > targetCell.Y)
+                {
+                    currentPosition = (currentPosition.X + 1, currentPosition.Y - 1);
+                    numSteps += 2;
+                }
+                else if (currentPosition.X < targetCell.X && currentPosition.Y < targetCell.Y)
+                {
+                    currentPosition = (currentPosition.X + 1, currentPosition.Y + 1);
+                    numSteps += 2;
+                }
+                else if (currentPosition.X > targetCell.X)
+                {
+                    currentPosition = (currentPosition.X - 1, currentPosition.Y);
+                    numSteps++;
+                }
+                else if (currentPosition.X < targetCell.X)
+                {
+                    currentPosition = (currentPosition.X + 1, currentPosition.Y);
+                    numSteps++;
+                }
+                else if (currentPosition.Y > targetCell.Y)
+                {
+                    currentPosition = (currentPosition.X, currentPosition.Y - 1);
+                    numSteps++;
+                }
+                else if (currentPosition.Y < targetCell.Y)
+                {
+                    currentPosition = (currentPosition.X, currentPosition.Y + 1);
+                    numSteps++;
+                }
             }
+
+            return numSteps;
         }
     }
 }
