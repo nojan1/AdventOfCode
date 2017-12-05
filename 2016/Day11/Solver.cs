@@ -16,7 +16,7 @@ namespace Day11
         {
             foreach (var component in Components)
             {
-                floors.Floors[currentFloor].Components.RemoveAll(c => c.GetType() == component.GetType() && c.Element == component.Element);
+                floors.Floors[currentFloor].Components.RemoveAll(c => c.Equals(component));
                 floors.Floors[ToFloor].Components.Add(component);
             }
         }

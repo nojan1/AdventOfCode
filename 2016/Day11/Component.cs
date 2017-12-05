@@ -13,7 +13,7 @@ namespace Day11
         public override bool Equals(object obj)
         {
             Component other = obj as Component;
-            return other.Element == Element;
+            return this.GetType() == other.GetType() && other.Element == Element;
         }
 
         public override int GetHashCode()

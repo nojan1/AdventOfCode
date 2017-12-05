@@ -25,7 +25,7 @@ namespace Day11
                     string.Join($"{Environment.NewLine}{Environment.NewLine}", solution.FloorStates));
             });
 
-            var randomSolver = new RandomSolver(floors, onProgress);
+            var randomSolver = new RandomSolver(floors, 175, onProgress);
             randomSolver.RunToEnd();
         }
     }

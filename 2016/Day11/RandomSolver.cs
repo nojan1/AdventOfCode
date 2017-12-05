@@ -28,8 +28,10 @@ namespace Day11
         private FloorCollection _floors;
         private int _seed = 0;
 
-        public RandomSolver(FloorCollection floors, IProgress<Solution> progress) : base(NUM_THREADS, progress)
+        public RandomSolver(FloorCollection floors, int allowedMax, IProgress<Solution> progress) : base(NUM_THREADS, progress)
         {
+            BestResult = new Solution(floors) { NumSteps = allowedMax };
+
             _floors = floors;
         }
 
@@ -55,28 +57,33 @@ namespace Day11
             var rnd = new Random(seed);
             
             int currentFloor = 0;
+            int lastFloor = -1;
             var floors = _floors.Clone();
             var solution = new Solution(floors);
+            Move selectedMove = null;
 
             while (!floors.AllComponentsOnTopFloor())
             {
                 var availableMoves = GenerateMoves(floors, currentFloor);
-                var move = availableMoves[rnd.Next(0, availableMoves.Count)];
+                var legalMoves = FilterBadMoves(availableMoves, floors, currentFloor, lastFloor, selectedMove);
 
-                move.Do(floors, currentFloor);
-
-                if (floors.WillResultInCatastrophicMeltdown())
+                if (!legalMoves.Any() || solution.NumSteps > BestResult.NumSteps)
                 {
                     currentFloor = 0;
                     floors = _floors.Clone();
                     solution = new Solution(floors);
+                    lastFloor = -1;
                     continue;
                 }
+
+                selectedMove = legalMoves[rnd.Next(0, legalMoves.Count)];
+                selectedMove.Do(floors, currentFloor);
 
                 solution.NumSteps++;
                 solution.FloorStates.Add(floors.ToString());
 
-                currentFloor = move.ToFloor;
+                lastFloor = currentFloor;
+                currentFloor = selectedMove.ToFloor;
             }
 
             return solution;
@@ -102,6 +109,31 @@ namespace Day11
 
                 //Dual component down
                 moves.AddRange(new Combinations<Component>(floors.Floors[currentFloor].Components, 2).Select(c => new Move { Components = c, ToFloor = currentFloor - 1 }));
+            }
+
+            return moves;
+        }
+
+        private List<Move> FilterBadMoves(List<Move> moves, FloorCollection floors, int currentFloor, int lastFloor, Move lastMove)
+        {
+            foreach(var move in moves.ToList())
+            {
+                //if(lastFloor != -1 && 
+                //   move.ToFloor == lastFloor &&
+                //   lastMove.Components.Count == move.Components.Count &&
+                //   lastMove.Components.All(c => move.Components.Any(c2 => c.Equals(c2) /*c.GetType() == c2.GetType() && c.Element == c2.Element*/)))
+                //{
+                //    moves.Remove(move);
+                //    continue;
+                //}
+
+                var floorsCopy = floors.Clone();
+                move.Do(floorsCopy, currentFloor);
+
+                if (floorsCopy.WillResultInCatastrophicMeltdown())
+                {
+                    moves.Remove(move);
+                }
             }
 
             return moves;
