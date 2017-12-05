@@ -20,8 +20,32 @@ namespace Day11
         {
             return Element.GetHashCode();
         }
+
+        public abstract Component Clone();
     }
 
-    public class RTG : Component { }
-    public class Microship : Component { }
+    public class RTG : Component
+    {
+        public override string ToString()
+        {
+            return $"Generator: {Element}";
+        }
+
+        public override Component Clone()
+        {
+            return new RTG { Element = Element };
+        }
+    }
+    public class Microchip : Component
+    {
+        public override string ToString()
+        {
+            return $"Microchip: {Element}";
+        }
+
+        public override Component Clone()
+        {
+            return new Microchip { Element = Element };
+        }
+    }
 }

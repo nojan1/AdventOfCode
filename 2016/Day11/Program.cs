@@ -12,10 +12,21 @@ namespace Day11
     {
         static void Main(string[] args)
         {
-            var floors = new FloorCollection("sampleInput.txt");
-            var solutions = new Solver().Solve(floors);
+            var floors = new FloorCollection("input.txt");
+            //var solutions = new Solver().Solve(floors);
 
-            Console.WriteLine($"The shortest amount of moves is {solutions.Min(s => s.Count)}");
+            //Console.WriteLine($"The shortest amount of moves is {solutions.Min(s => s.Count)}");
+
+            var onProgress = new Progress<Solution>(solution =>
+            {
+                Console.WriteLine($"New low num steps: {solution.NumSteps}");
+
+                File.WriteAllText($"{solution.NumSteps}-solution.txt", 
+                    string.Join($"{Environment.NewLine}{Environment.NewLine}", solution.FloorStates));
+            });
+
+            var randomSolver = new RandomSolver(floors, onProgress);
+            randomSolver.RunToEnd();
         }
     }
 }

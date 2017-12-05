@@ -37,7 +37,7 @@ namespace Day25
             }
         }
 
-        protected override bool Worker(int a)
+        protected override bool Worker(int taskId, int a)
         {
             var outputBuffer = new List<int>();
             var cpu = new BunnyPU(_instructions);

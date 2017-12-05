@@ -18,8 +18,19 @@ namespace Day11
             return new Floor
             {
                 FloorNum = FloorNum,
-                Components = Components.Select<Component, Component>(c => { if (c is RTG) { return new RTG { Element = c.Element }; } else { return new Microship { Element = c.Element }; } }).ToList()
+                Components = Components.Select<Component, Component>(c => { if (c is RTG) { return new RTG { Element = c.Element }; } else { return new Microchip { Element = c.Element }; } }).ToList()
             };
+        }
+
+        public override string ToString()
+        {
+            return String.Join(" ", Components.Select(c =>
+            {
+                if (c is RTG)
+                    return $"{c.Element.ToUpper().First()}G";
+                else
+                    return $"{c.Element.ToUpper().First()}M";
+            }));
         }
     }
 
@@ -53,9 +64,12 @@ namespace Day11
         {
             foreach (var floor in Floors)
             {
-                foreach (Microship microship in floor.Components.Where(c => c is Microship))
+                if (floor.Components.All(c => c is Microchip))
+                    continue;
+
+                foreach (var microship in floor.Components.OfType<Microchip>())
                 {
-                    if (floor.Components.Any(c => c is RTG) && floor.Components.All(c => c is RTG && c.Element != microship.Element))
+                    if (!floor.Components.Any(c => c is RTG && c.Element == microship.Element))
                     {
                         return true;
                     }
@@ -70,6 +84,17 @@ namespace Day11
             return new FloorCollection(Floors.Select(f => f.Clone()).ToArray());
         }
 
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            for (int i = Floors.Length - 1; i >= 0; i--)
+            {
+                sb.AppendLine($"F{(i + 1)}: {Floors[i]}");
+            }
+
+            return sb.ToString();
+        }
+
         private List<Component> ComponentsFromLine(string line)
         {
             var returnValue = new List<Component>();
@@ -81,7 +106,7 @@ namespace Day11
                 returnValue.Add(new RTG { Element = generator });
 
             foreach (var microship in microships)
-                returnValue.Add(new Microship { Element = microship });
+                returnValue.Add(new Microchip { Element = microship });
 
             return returnValue;
         }
