@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Day5
 {
     class Program
     {
-        static int FollowJumps(int[] jumpsArg, bool stepOne)
+        static int FollowJumps(int[] jumpsArg, DayPart part)
         {
             var jumps = jumpsArg.ToArray(); //Make copy
             int numSteps = 0;
@@ -17,7 +18,7 @@ namespace Day5
 
             while (pointer >= 0 && pointer < jumps.Length)
             {
-                if (stepOne)
+                if (part == DayPart.One)
                 {
                     pointer += jumps[pointer]++;
                 }
@@ -39,7 +40,7 @@ namespace Day5
         {
             var jumps = File.ReadAllLines("jumps.txt").Select(x => Convert.ToInt32(x)).ToArray();
 
-            var numSteps = FollowJumps(jumps, false);
+            var numSteps = FollowJumps(jumps, DayPart.Two);
             Console.WriteLine($"The number of steps was: {numSteps}");
         }
     }

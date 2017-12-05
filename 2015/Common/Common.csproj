@@ -41,7 +41,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GenericParallelTaskRunnerBase.cs" />
+    <Compile Include="GenericParallelTaskRunnerBaseWithProgress.cs" />
+    <Compile Include="PartEnum.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WtfException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

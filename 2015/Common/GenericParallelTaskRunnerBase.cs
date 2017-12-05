@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace Common
         private int _maxWorkers;
         private List<Task> _taskList = new List<Task>();
 
-        public bool RunComplete {get; protected set;}
+        public bool RunComplete { get; protected set; }
 
         public GenericParallelTaskRunnerBase(int maxWorkers)
         {
@@ -22,7 +23,7 @@ namespace Common
         {
             while (!RunComplete)
             {
-                while(_taskList.Count < _maxWorkers)
+                while (_taskList.Count < _maxWorkers)
                 {
                     var parameter = CreateTaskParameter();
                     if (parameter == null)
@@ -30,7 +31,7 @@ namespace Common
 
                     var task = Task.Run<TReturnValue>(() =>
                     {
-                        return Worker(parameter);
+                        return Worker(_taskList.Count, parameter);
                     }).ContinueWith(result =>
                     {
                         OnTaskFinished(parameter, result.Result);
@@ -39,7 +40,7 @@ namespace Common
                     _taskList.Add(task);
                 }
 
-                if(!_taskList.Any())
+                if (!_taskList.Any())
                 {
                     RunComplete = true;
                     return;
@@ -53,7 +54,7 @@ namespace Common
         }
 
         protected abstract TParameter CreateTaskParameter();
-        protected abstract TReturnValue Worker(TParameter parameter);
+        protected abstract TReturnValue Worker(int taskId, TParameter parameter);
         protected abstract void OnTaskFinished(TParameter taskParameter, TReturnValue taskReturnValue);
     }
 }

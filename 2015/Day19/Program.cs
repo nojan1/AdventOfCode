@@ -1,55 +1,104 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace Day19
 {
-    class Program
+    class FinderProgress { }
+    class WorkerProgress : FinderProgress
     {
-        static int SubsubInner(Dictionary<string, List<string>> replacements, string molecule, string target, int chainLength, List<string> previousMolecules, List<int> chainLengths, string previousReplacement = "")
+        public int TaskId { get; set; }
+        public int NumRetry { get; set; }
+    }
+
+    class NumStepProgress : FinderProgress
+    {
+        public int NumStep { get; set; }
+    }
+
+    class RandomFinder : GenericParallelTaskRunnerBaseWithProgress<int, int, FinderProgress>
+    {
+        private const int NUM_THREADS = 8;
+
+        private List<KeyValuePair<string, string>> _replacements;
+        private string _start;
+        private string _target;
+
+        private int _seed = 0;
+        private int _lowestNumSteps = int.MaxValue;
+
+        public RandomFinder(List<KeyValuePair<string, string>> replacements, string start, string target, IProgress<FinderProgress> progress) 
+            : base(NUM_THREADS, progress)
         {
-            foreach (var replacement in replacements)
+            _replacements = replacements;
+            _start = start;
+            _target = target;
+        }
+
+        protected override int CreateTaskParameter()
+        {
+            return _seed++;
+        }
+
+        protected override void OnTaskFinished(int seed, int numSteps)
+        {
+            if (numSteps < _lowestNumSteps)
             {
-                var indexOfKey = molecule.IndexOf(replacement.Key);
-                if (indexOfKey > -1)
+                _lowestNumSteps = numSteps;
+
+                ReportProgress(new NumStepProgress { NumStep = numSteps });
+            }
+        }
+
+        protected override int Worker(int taskId, int seed)
+        {
+            int numRetry = 0;
+            int numSteps = 0;
+            var rnd = new Random(seed);
+            string workingMolecule = _target;
+
+            while (workingMolecule != _start)
+            {
+                var possibleReplacements = _replacements.Where(x => workingMolecule.Contains(x.Value)).ToArray();
+
+                if (possibleReplacements.Any())
                 {
-                    foreach (var substitute in replacement.Value)
+                    var randomReplacement = possibleReplacements[rnd.Next(0, possibleReplacements.Length)];
+
+                    var indexOfValue = workingMolecule.IndexOf(randomReplacement.Value);
+                    if (indexOfValue == -1)
+                        throw new WtfException("But you where there a second ago :(");
+
+                    workingMolecule = $"{workingMolecule.Substring(0, indexOfValue)}{randomReplacement.Key}{workingMolecule.Substring(indexOfValue + randomReplacement.Value.Length)}";
+                    numSteps++;
+
+                }
+
+                if (numSteps >= 10000 || !possibleReplacements.Any())
+                {
+                    workingMolecule = _target;
+                    numSteps = 0;
+
+                    ReportProgress(new WorkerProgress
                     {
-                        if (previousReplacement != "" && substitute.Contains(previousReplacement))
-                            continue;
-
-                        string newMolecule = $"{molecule.Substring(0, indexOfKey)}{substitute}{molecule.Substring(indexOfKey + replacement.Key.Length)}";
-
-                        if (newMolecule == target)
-                            return chainLength;
-
-                        if (!previousMolecules.Contains(newMolecule))
-                        {
-                            previousMolecules.Add(newMolecule);
-
-                            var length = SubsubInner(replacements, newMolecule, target, chainLength + 1, previousMolecules, chainLengths, replacement.Key);
-                            if(length > -1)
-                                chainLengths.Add(length);
-                        }
-                    }
+                        TaskId = taskId,
+                        NumRetry = ++numRetry
+                    });
                 }
             }
 
-            return -1;
+            return numSteps;
         }
+    }
 
-        static List<int> SubSub(Dictionary<string, List<string>> replacements, string molecule, string target)
-        {
-            var chainLengths = new List<int>();
-            SubsubInner(replacements, molecule, target, 0, new List<string>(), chainLengths);
+    class Program
+    {
 
-            return chainLengths;
-        }
-
-        static List<string> NotSubSub(Dictionary<string, List<string>> replacements, string molecule)
+        static List<string> NotSubSub(List<KeyValuePair<string, string>> replacements, string molecule)
         {
             var distänctMolykules = new List<string>();
 
@@ -59,9 +108,9 @@ namespace Day19
 
                 while ((indexOfKey = molecule.IndexOf(replacement.Key, indexOfKey + 1)) > -1)
                 {
-                    foreach (var substitute in replacement.Value)
+                    foreach (var substitute in replacements.Where(x => x.Key == replacement.Key))
                     {
-                        string newMolecule = $"{molecule.Substring(0, indexOfKey)}{substitute}{molecule.Substring(indexOfKey + replacement.Key.Length)}";
+                        string newMolecule = $"{molecule.Substring(0, indexOfKey)}{substitute.Value}{molecule.Substring(indexOfKey + replacement.Key.Length)}";
                         if (!distänctMolykules.Contains(newMolecule))
                         {
                             distänctMolykules.Add(newMolecule);
@@ -77,31 +126,54 @@ namespace Day19
         {
             var data = File.ReadAllLines("Molekul.txt");
 
-            var replacements = new Dictionary<string, List<string>>();
+            var replacements = new List<KeyValuePair<string, string>>();
 
             data.TakeWhile(x => !string.IsNullOrWhiteSpace(x))
                 .Select(x => x.Split(new string[] { "=>" }, StringSplitOptions.RemoveEmptyEntries))
                 .ToList()
                 .ForEach(x =>
                 {
-                    var key = x[0].Trim();
-
-                    var list = replacements.ContainsKey(key) ? replacements[key] : new List<string>();
-                    list.Add(x[1].Trim());
-
-                    replacements[key] = list;
+                    replacements.Add(new KeyValuePair<string, string>(x[0].Trim(), x[1].Trim()));
                 });
 
-            var startingMolecule = data.Last();
+            var molecule = data.Last();
 
-            var chainLengths = SubSub(replacements, "e", startingMolecule);
 
-            //var someList = NotSubSub(replacements, startingMolecule);
+            int numSteps = -1;
+            Dictionary<int, int> workerStats = new Dictionary<int, int>();
 
-            //if(someList.Count >= 674)
-            //    Console.ForegroundColor = ConsoleColor.Red;
+            var progressHandler = new Progress<FinderProgress>(progress =>
+            {
+                if (progress is NumStepProgress)
+                {
+                    numSteps = ((NumStepProgress)progress).NumStep;
+                }
+                else if (progress is WorkerProgress)
+                {
+                    var workerProgress = (WorkerProgress)progress;
+                    workerStats[workerProgress.TaskId] = workerProgress.NumRetry;
+                }
+            });
 
-            //Console.WriteLine($"Something something == {someList.Count}");
+            var randomFinder = new RandomFinder(replacements, "e", molecule, progressHandler);
+
+            Task.Run(() =>
+            {
+                while (!randomFinder.RunComplete)
+                {
+                    Console.Clear();
+                    Console.WriteLine($"Lowest number of steps: {numSteps}");
+                    Console.WriteLine("=========================================");
+                    foreach (var worker in workerStats.Keys.ToList())
+                    {
+                        Console.WriteLine($"Worker: {worker} - {workerStats[worker]} retries");
+                    }
+
+                    Task.Delay(500).Wait();
+                }
+            });
+
+            randomFinder.RunToEnd();
         }
     }
 }
