@@ -99,7 +99,7 @@ namespace Day7
 
         static void Main(string[] args)
         {
-            var inputs = File.ReadAllLines("input.txt").Select(l => new InputData(l)).ToArray();
+            var inputs = File.ReadAllLines("linus-input.txt").Select(l => new InputData(l)).ToArray();
 
             var tree = AssembleTree(inputs);
             Console.WriteLine($"The bottom program is {tree.Name}");
