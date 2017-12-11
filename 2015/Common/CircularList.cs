@@ -66,6 +66,9 @@ namespace Common
 
         public bool MoveNext()
         {
+            if (!_list.Any())
+                return false;
+
             if (++_currentElement > _list.Count - 1)
                 _currentElement = 0;
 
