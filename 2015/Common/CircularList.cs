@@ -36,6 +36,11 @@ namespace Common
             return new CircularEnumerator<T>(this);
         }
 
+        public new void RemoveAt(int index)
+        {
+            base.RemoveAt(index % Count);
+        }
+
         public void ReplaceRange(IList<T> other, int offset)
         {
             for (int i = 0; i < other.Count; i++)

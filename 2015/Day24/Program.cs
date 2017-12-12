@@ -10,36 +10,37 @@ namespace Day24
 {
     class Result
     {
-        public long QuantumEntanglement { get; set; }
-        public List<long>[] Compartments { get; set; }
+        public ulong QuantumEntanglement => FootCompartment.Aggregate((a, b) => a * b);
+        public List<ulong> FootCompartment { get; set; }
 
         public bool IsBetterThan(Result other)
         {
-            return Compartments[0].Count < other.Compartments[0].Count ||
-                    (Compartments[0].Count == other.Compartments[0].Count && QuantumEntanglement < other.QuantumEntanglement);
+            return FootCompartment.Count < other.FootCompartment.Count ||
+                    (FootCompartment.Count == other.FootCompartment.Count && QuantumEntanglement < other.QuantumEntanglement);
         }
     }
 
     class RandomWeightAllocator : GenericParallelTaskRunnerBaseWithProgress<int, Result, Result>
     {
         const int NUM_THREADS = 8;
+        const int NUM_COMPARTMENTS = 4;
 
-        private List<int> _weights;
-        private int _seed = 0;
+        private List<ulong> _weights;
+        private int _seed = int.MaxValue;
 
         public Result BestResult { get; private set; }
 
         public RandomWeightAllocator(List<int> weights, IProgress<Result> progress) : base(NUM_THREADS, progress)
         {
-            _weights = weights;
+            _weights = weights.Select(x => (ulong)x).ToList();
         }
 
         protected override int CreateTaskParameter()
         {
-            if (_seed == int.MaxValue)
+            if (_seed == 0)
                 RunComplete = true;
 
-            return _seed++;
+            return _seed--;
         }
 
         protected override void OnTaskFinished(int seed, Result result)
@@ -58,27 +59,30 @@ namespace Day24
         protected override Result Worker(int taskId, int seed)
         {
             var rnd = new Random(seed);
-            var weights = new Queue<int>(_weights.OrderBy(x => rnd.Next()));
-            var compartments = Enumerable.Range(0, 3).Select(x => new List<long>()).ToArray();
 
-            while (weights.Any())
+            var currentWeight = 0ul;
+            var targetWeight = _weights.Aggregate((a,b) => a + b) / NUM_COMPARTMENTS;
+            var footCompartment = new List<ulong>();
+
+            foreach(var weight in _weights)
             {
-                compartments[rnd.Next(0, compartments.Length)].Add(weights.Dequeue());
-            }
-
-            var sums = compartments.Select(x => x.Sum()).ToArray();
-
-            if (sums[0] == sums[1] && sums[1] == sums[2] &&
-                compartments[0].Count <= compartments[1].Count && compartments[0].Count <= compartments[2].Count)
-            {
-                return new Result
+                if(rnd.Next(NUM_COMPARTMENTS) == 0)
                 {
-                    Compartments = compartments,
-                    QuantumEntanglement = compartments[0].Aggregate((a, b) => a * b)
-                };
+                    footCompartment.Add(weight);
+                    currentWeight += weight;
+                }
+
+                if (currentWeight > targetWeight)
+                    return null;
             }
-            else
+
+            if (currentWeight != targetWeight)
                 return null;
+
+            return new Result
+            {
+                FootCompartment = footCompartment
+            };
         }
     }
 
@@ -88,7 +92,7 @@ namespace Day24
         {
             var weights = File.ReadAllLines("input.txt").Select(x => Convert.ToInt32(x.Trim())).ToList();
 
-            Func<List<long>, int, string> elementOrBlank = (arr, index) =>
+            Func<List<ulong>, int, string> elementOrBlank = (arr, index) =>
             {
                 if (index > arr.Count - 1)
                     return "".PadLeft(6);
@@ -98,15 +102,8 @@ namespace Day24
 
             var qeProgress = new Progress<Result>(res =>
             {
-
                 Console.Clear();
                 Console.WriteLine($"New low quantum entanglement: {res.QuantumEntanglement}");
-                Console.WriteLine("--------------------------");
-
-                for (int i = 0; i < res.Compartments.Max(x => x.Count); i++)
-                {
-                    Console.WriteLine($"{elementOrBlank(res.Compartments[0], i)}{elementOrBlank(res.Compartments[1], i)}{elementOrBlank(res.Compartments[2], i)}");
-                }
             });
 
             var allocator = new RandomWeightAllocator(weights, qeProgress);
