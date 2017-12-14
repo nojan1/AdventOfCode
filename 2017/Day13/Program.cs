@@ -18,13 +18,15 @@ namespace Day13
 
     class Scanner : IScanner
     {
+        public int Layer { get; private set; }
         public int Length { get; private set; }
         public int CurrentPosition { get; private set; }
 
         private int _direction;
 
-        public Scanner(int length)
+        public Scanner(int layer, int length)
         {
+            Layer = layer;
             Length = length;
             CurrentPosition = 0;
             _direction = +1;
@@ -42,7 +44,7 @@ namespace Day13
 
         public bool IsCaught(Packet packet)
         {
-            return CurrentPosition == 0;
+            return CurrentPosition == 0 && packet.CurrentLayer == Layer;
         }
     }
 
@@ -74,7 +76,7 @@ namespace Day13
             {
                 if (scannerDefinitions.ContainsKey(i))
                 {
-                    Scanners.Add(new Scanner(scannerDefinitions[i]));
+                    Scanners.Add(new Scanner(i, scannerDefinitions[i]));
                 }
                 else
                 {
@@ -93,7 +95,7 @@ namespace Day13
     {
         public int BornAt { get; private set; }
         public List<int> CaughtAt { get; private set; } = new List<int>();
-        public int Position { get; private set; }
+        public int CurrentLayer { get; private set; }
         public bool HasPassedFirewall { get; private set; }
 
         private Firewall _firewall;
@@ -109,9 +111,9 @@ namespace Day13
             if (HasPassedFirewall)
                 return;
 
-            if (_firewall.Scanners[Position].IsCaught(this))
+            if (_firewall.Scanners[CurrentLayer].IsCaught(this))
             {
-                CaughtAt.Add(Position);
+                CaughtAt.Add(CurrentLayer);
             }
         }
 
@@ -120,9 +122,9 @@ namespace Day13
             if (HasPassedFirewall)
                 return;
 
-            Position++;
+            CurrentLayer++;
 
-            if (Position > _firewall.Scanners.Count - 1)
+            if (CurrentLayer > _firewall.Scanners.Count - 1)
             {
                 HasPassedFirewall = true;
                 return;
@@ -159,18 +161,26 @@ namespace Day13
 
             while (!packets.Any(p => p.HasPassedFirewall && !p.CaughtAt.Any()))
             {
-                packets.Add(new Packet(firewall, timeCounter++));
+                var newPacket = new Packet(firewall, timeCounter++);
+                packets.Add(newPacket);
+
+                newPacket.CheckCaught();
 
                 firewall.UpdateScanners();
                 packets.ForEach(p => p.Update());
+
+                if (timeCounter % 100 == 0)
+                    packets.RemoveAll(p => p.CaughtAt.Any());
             }
 
-            return packets.First(p => p.HasPassedFirewall && !p.CaughtAt.Any()).BornAt;
+            var winningPacket = packets.First(p => p.HasPassedFirewall && !p.CaughtAt.Any());
+            return winningPacket.BornAt;
         }
 
         static void Main(string[] args)
         {
-            var scannerDefinitions = File.ReadAllLines("input.txt").Select(l => l.Split(':')).ToDictionary(x => Convert.ToInt32(x[0].Trim()), x => Convert.ToInt32(x[1].Trim()));
+            var input = File.ReadAllLines("input.txt");
+            var scannerDefinitions = input.Select(l => l.Split(':')).ToDictionary(x => Convert.ToInt32(x[0].Trim()), x => Convert.ToInt32(x[1].Trim()));
 
             var severity = A(scannerDefinitions);
             Console.WriteLine($"Severity is {severity}");
