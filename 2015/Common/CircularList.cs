@@ -36,6 +36,14 @@ namespace Common
             return new CircularEnumerator<T>(this);
         }
 
+        public new void Insert(int index, T value)
+        {
+            if (index < Count)
+                base.Insert(index, value);
+            else
+                base.Insert((index % Count) + 1, value);
+        }
+
         public new void RemoveAt(int index)
         {
             base.RemoveAt(index % Count);
