@@ -1,6 +1,8 @@
 ﻿using Common;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,12 +12,12 @@ namespace Day16
 {
     class Program
     {
-        static void Swap(List<char> programs, int index1, int index2)
+        static void Swap(Dictionary<char, int> programsLookup, char char1, char char2)
         {
-            var backup = programs[index1];
+            var indexBackup = programsLookup[char1];
 
-            programs[index1] = programs[index2];
-            programs[index2] = backup;
+            programsLookup[char1] = programsLookup[char2];
+            programsLookup[char2] = indexBackup;
         }
 
         static void Main(string[] args)
@@ -23,9 +25,16 @@ namespace Day16
             var part = DayPart.Two;
             var input = File.ReadAllText("input.txt").Split(',');
 
-            var programs = Enumerable.Range('a', 16).Select(x => (char)x).ToList();
+            var previousOrders = new List<string>();
 
-            for (int i = 0; i < (part == DayPart.One ? 1 : 1000000000); i++)
+            var programsLookup = new Dictionary<char, int>();
+            for (int i = 0; i < 16; i++)
+                programsLookup[(char)('a' + i)] = i;
+
+            previousOrders.Add("abcdefghijklmnop");
+
+            var to = part == DayPart.One ? 1 : 1000000000;
+            for (int i = 0; i < to; i++)
             {
                 foreach (var x in input)
                 {
@@ -37,31 +46,46 @@ namespace Day16
                         case 's':
                             int spinSize = Convert.ToInt32(arguments[0]);
 
-                            int lowerIndex = programs.Count - spinSize;
-                            var firstHalf = programs.Skip(lowerIndex);
-                            var secondHalf = programs.Take(lowerIndex);
-
-                            programs = Enumerable.Concat(firstHalf, secondHalf).ToList();
+                            foreach(var key in programsLookup.Keys.ToList())
+                            {
+                                programsLookup[key] = (programsLookup[key] + spinSize) % programsLookup.Count;
+                            }
 
                             break;
                         case 'x':
                             var pos1 = Convert.ToInt32(arguments[0]);
                             var pos2 = Convert.ToInt32(arguments[1]);
 
-                            Swap(programs, pos1, pos2);
+                            var char1 = programsLookup.First(k => k.Value == pos1).Key;
+                            var char2 = programsLookup.First(k => k.Value == pos2).Key;
+
+                            Swap(programsLookup, char1, char2);
+
                             break;
                         case 'p':
-                            var index1 = programs.IndexOf(arguments[0][0]);
-                            var index2 = programs.IndexOf(arguments[1][0]);
+                            Swap(programsLookup, arguments[0][0], arguments[1][0]);
 
-                            Swap(programs, index1, index2);
                             break;
                     }
                 }
+
+                var order = string.Concat(programsLookup.OrderBy(x => x.Value).Select(x => x.Key));
+                var lastSeen = previousOrders.IndexOf(order);
+
+                if (lastSeen != -1)
+                {
+                    Console.WriteLine($"Order for iteration {i} was the same as {lastSeen}");
+
+                    var correctOrderIndex = to % (i + 1);
+                    previousOrders.Add(previousOrders[correctOrderIndex]);
+
+                    break;
+                }
+
+                previousOrders.Add(order);
             }
 
-            var order = string.Concat(programs);
-            Console.WriteLine($"The final order is '{order}'");
+            Console.WriteLine($"The final order is '{previousOrders.Last()}'");
         }
     }
 }

@@ -52,6 +52,17 @@ namespace Day15
     {
         static void Main(string[] args)
         {
+            var fortunes = FortuneEnumerableFactory.Create().Result;
+            foreach(var x in fortunes)
+            {
+                Console.Clear();
+                Console.Write(x);
+                Console.ReadKey();
+            }
+        }
+
+        static void Main2(string[] args)
+        {
             /*
              * Generator A starts with 289
              * Generator B starts with 629

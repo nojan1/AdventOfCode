@@ -19,9 +19,11 @@ namespace Day17
 
             for(int i = 1; i <= 2017; i++)
             {
-                currentPosition += input;
-                buffer.Insert(currentPosition, i);
+                currentPosition = (currentPosition + input - 1) % buffer.Count;
+                buffer.Insert(currentPosition + 1, i);
             }
+
+            buffer.Reverse();
 
             var value = buffer[buffer.IndexOf(2017) + 1];
             Console.WriteLine($"The value is {value}");
