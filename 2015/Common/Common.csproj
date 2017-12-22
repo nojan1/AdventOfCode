@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Common</RootNamespace>
     <AssemblyName>Common</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,6 +43,9 @@
   <ItemGroup>
     <Compile Include="CircularList.cs" />
     <Compile Include="ConsoleHelper.cs" />
+    <Compile Include="DynamicGrid.cs" />
+    <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="FortuneEnumerable.cs" />
     <Compile Include="GenericParallelTaskRunnerBase.cs" />
     <Compile Include="GenericParallelTaskRunnerBaseWithProgress.cs" />
     <Compile Include="ListExtensions.cs" />

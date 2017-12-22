@@ -38,10 +38,7 @@ namespace Common
 
         public new void Insert(int index, T value)
         {
-            if (index < Count)
-                base.Insert(index, value);
-            else
-                base.Insert((index % Count) + 1, value);
+            base.Insert(index % Count, value);
         }
 
         public new void RemoveAt(int index)
@@ -68,13 +65,13 @@ namespace Common
             _list = list;
         }
 
-        public T Current => _currentElement != -1 ?_list[_currentElement] : default(T);
+        public T Current => _currentElement != -1 ? _list[_currentElement] : default(T);
 
         object IEnumerator.Current => _currentElement != -1 ? _list[_currentElement] : default(T);
 
         public void Dispose()
         {
-            
+
         }
 
         public bool MoveNext()

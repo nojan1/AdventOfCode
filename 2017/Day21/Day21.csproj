@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E155D9E4-DA18-4667-8026-C224B1F66700}</ProjectGuid>
+    <ProjectGuid>{E6B0B7B7-6BF6-461C-8344-952B824EB166}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Day11</RootNamespace>
-    <AssemblyName>Day11</AssemblyName>
+    <RootNamespace>Day21</RootNamespace>
+    <AssemblyName>Day21</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -56,7 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\2015\Common\Common.csproj">
-      <Project>{FB9C8046-3B24-4C95-93C0-1694643D30C5}</Project>
+      <Project>{fb9c8046-3b24-4c95-93c0-1694643d30c5}</Project>
       <Name>Common</Name>
     </ProjectReference>
   </ItemGroup>
