@@ -24,6 +24,8 @@ namespace Day18
         public event Action<long> OnRecieve = delegate { };
         public event Action<long> OnSend = delegate { };
 
+        public Dictionary<string, int> InstructionUsageCount { get; set; } = new Dictionary<string, int>();
+
         public Processor(string[] instructions, DayPart dayPart)
         {
             _instructions = instructions;
@@ -64,9 +66,22 @@ namespace Day18
                     GetRegister(instructionParts[1]).Value += GetRawOrRegisterValue(instructionParts[2]);
 
                     break;
+                case "sub":
+                    GetRegister(instructionParts[1]).Value -= GetRawOrRegisterValue(instructionParts[2]);
+
+                    break;
                 case "jgz":
                     var conditionValue = GetRawOrRegisterValue(instructionParts[1]);
                     if (conditionValue > 0)
+                    {
+                        var pointerChange = GetRawOrRegisterValue(instructionParts[2]);
+                        instructionPointer += (int)pointerChange - 1;
+                    }
+
+                    break;
+                case "jnz":
+                    var conditionJumpValue = GetRawOrRegisterValue(instructionParts[1]);
+                    if (conditionJumpValue != 0)
                     {
                         var pointerChange = GetRawOrRegisterValue(instructionParts[2]);
                         instructionPointer += (int)pointerChange - 1;
@@ -108,6 +123,15 @@ namespace Day18
                     break;
                 default:
                     throw new Exception("Unsupported instruction: " + _instructions[instructionPointer]);
+            }
+
+            if (InstructionUsageCount.ContainsKey(instructionParts[0]))
+            {
+                InstructionUsageCount[instructionParts[0]]++;
+            }
+            else
+            {
+                InstructionUsageCount[instructionParts[0]] = 1;
             }
 
             return instructionPointer + 1;
