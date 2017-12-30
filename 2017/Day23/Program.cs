@@ -18,7 +18,7 @@ namespace Day23
 
             var processor = new Processor(instructions, DayPart.One);
 
-            if(part == DayPart.One)
+            if (part == DayPart.One)
             {
                 processor.RunToEnd();
 
@@ -27,21 +27,47 @@ namespace Day23
             }
             else
             {
-                int pointer = 0;
-                long hValue = -1;
+                int b, c, f, h = 0;
 
-                processor.GetRegister("a").Value = 1;
+                b = 108400;
+                c = b + 17000;
 
-                while(pointer != -1)
+                //int d, e;
+                //for (; b != c; b += 17)
+                //{
+                //    for (d = 2, f = 1; d != b; d++)
+                //    {
+                //        for (e = 2; e != b; e++)
+                //        {
+                //            if (d * e == b)
+                //            {
+                //                f = 0;
+                //            }
+                //        }
+                //    }
+
+                //    if (f == 0)
+                //    {
+                //        h++;
+                //    }
+                //}
+
+                for(int i = b; i <= c; i+=17)
                 {
-                    pointer = processor.RunSingleInstruction(pointer);
-
-                    if(hValue != processor.GetRegister("h").Value)
+                    f = 1;
+                    for(int z = 2; z < (i / 2); z++)
                     {
-                        hValue = processor.GetRegister("h").Value;
-                        Console.WriteLine($"Register H: {hValue}");
+                        if(i % z == 0)
+                        {
+                            f = 0;
+                        }
                     }
+
+                    if (f == 0)
+                        h++;
                 }
+
+                Console.WriteLine($"The value of h is {h}");
             }
         }
     }
