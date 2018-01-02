@@ -21,8 +21,8 @@ namespace Day20
 
         public void Update()
         {
-            Velocity = Vector3.Add(Velocity, Acceleration);
-            Position = Vector3.Add(Position, Velocity);
+            Velocity = Velocity + Acceleration;
+            Position = Position + Velocity;
 
             var abs = Vector3.Abs(Position);
             Distance = abs.X + abs.Y + abs.Z;
@@ -52,7 +52,7 @@ namespace Day20
 
             Particle closestParticle = null;
 
-            for (int i = 0; i < 2000; i++)
+            for (int i = 0; i < (part == DayPart.One ? 400 : 40); i++)
             {
                 particles.ForEach(p => p.Update());
 

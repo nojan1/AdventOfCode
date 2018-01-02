@@ -1,4 +1,6 @@
 ﻿using Common;
+using SixLabors.ImageSharp;
+using SixLabors.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +21,7 @@ namespace Day22
 
     abstract class VirusCarrierBase
     {
-        protected Dictionary<(int y, int x), InfectionGrade> _infectedNodes = new Dictionary<(int y, int x), InfectionGrade>();
+        public Dictionary<(int y, int x), InfectionGrade> InfectedNodes { get; private set; } = new Dictionary<(int y, int x), InfectionGrade>();
         protected (int y, int x) _center;
 
         private int _numBursts;
@@ -31,7 +33,7 @@ namespace Day22
                 for (int x = 0; x < initialState[y].Length; x++)
                 {
                     if (initialState[y][x] == '#')
-                        _infectedNodes[(y, x)] = InfectionGrade.Infected;
+                        InfectedNodes[(y, x)] = InfectionGrade.Infected;
                 }
             }
 
@@ -47,7 +49,7 @@ namespace Day22
 
             for (int burst = 0; burst < _numBursts; burst++)
             {
-                var node = _infectedNodes.ContainsKey(position) ? _infectedNodes[position] : InfectionGrade.Clean;
+                var node = InfectedNodes.ContainsKey(position) ? InfectedNodes[position] : InfectionGrade.Clean;
                 OnBurst(node, ref direction, ref position, ref numInfections);
 
                 position = (position.y + direction.yDir, position.x + direction.xDir);
@@ -79,13 +81,13 @@ namespace Day22
         {
             if (node == InfectionGrade.Infected)
             {
-                _infectedNodes[position] = InfectionGrade.Clean;
+                InfectedNodes[position] = InfectionGrade.Clean;
                 direction = Turn(direction, 1);
             }
             else
             {
                 numInfections++;
-                _infectedNodes[position] = InfectionGrade.Infected;
+                InfectedNodes[position] = InfectionGrade.Infected;
                 direction = Turn(direction, -1);
             } 
         }
@@ -111,9 +113,9 @@ namespace Day22
             }
 
             var infectionInt = (int)node + 1;
-            _infectedNodes[position] = (InfectionGrade)(infectionInt > 3 ? 0 : infectionInt);
+            InfectedNodes[position] = (InfectionGrade)(infectionInt > 3 ? 0 : infectionInt);
 
-            if (_infectedNodes[position] == InfectionGrade.Infected)
+            if (InfectedNodes[position] == InfectionGrade.Infected)
                 numInfections++;
         }
     }
@@ -131,6 +133,37 @@ namespace Day22
             var part2 = new VirusCarrierTwo(lines);
             var numInfections2 = part2.Infect();
             Console.WriteLine($"Part2: A total of {numInfections2} bursts caused infections");
+
+
+            var startX = part2.InfectedNodes.Min(x => x.Key.x);
+            var startY = part2.InfectedNodes.Min(x => x.Key.y);
+            var width = part2.InfectedNodes.Max(x => x.Key.x);
+            var height = part2.InfectedNodes.Max(x => x.Key.y);
+
+            var image = new Image<Rgba32>((width + Math.Abs(startX)) * 4, (height + Math.Abs(startY)) * 4);
+            image.Mutate(op =>
+            {
+                var colors = new Rgba32[] { Rgba32.Black, Rgba32.Orange, Rgba32.Red, Rgba32.Yellow };
+
+                for(int y = startY; y < height; y+=4)
+                {
+                    for(int x = startX; x < width; x+=4)
+                    {
+                        var state = part2.InfectedNodes.ContainsKey((y, x)) ? part2.InfectedNodes[(y, x)] : InfectionGrade.Clean;
+
+                        int imageY = y + Math.Abs(startY);
+                        int imageX = x + Math.Abs(startX);
+
+                        op.FillPolygon(colors[(int)state], new PointF[] { new PointF(imageX, imageY),
+                                                                          new PointF(imageX + 4, imageY),
+                                                                          new PointF(imageX + 4, imageY + 4),
+                                                                          new PointF(imageX, imageY + 4)
+                                                                         });
+                    }
+                }
+            });
+
+            image.Save("part2.png");
         }
     }
 }
