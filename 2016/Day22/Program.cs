@@ -183,10 +183,10 @@ namespace Day22
 
             int numSteps = 0;
 
-            numSteps += MoveTo(driveGrid, (emptyDrive.GridX, emptyDrive.GridY), (targetDrive.GridX - 1, targetDrive.GridY));
+            numSteps += MoveTo(driveGrid, (emptyDrive.GridX, emptyDrive.GridY), (targetDrive.GridX, targetDrive.GridY));
             PrintGridToFile(driveGrid, "grid2.txt", targetDrive);
 
-            numSteps += MoveTo(driveGrid, (targetDrive.GridX, targetDrive.GridY), (0, 0));
+            numSteps += (MoveTo(driveGrid, (targetDrive.GridX, targetDrive.GridY), (1, 0)) * 5);
             PrintGridToFile(driveGrid, "grid3.txt", targetDrive);
 
             Console.WriteLine($"How about {numSteps} steps?");
