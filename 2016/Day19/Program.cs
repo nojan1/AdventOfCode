@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,12 +10,16 @@ namespace Day19
     class Elf
     {
         public int ElfNum { get; set; }
-        public List<int> Presents { get; set; }
+        public int Presents { get; set; } = 1;
 
         public Elf(int num)
         {
             ElfNum = num;
-            Presents = new List<int> { num };
+        }
+
+        public override string ToString()
+        {
+            return $"Elf: {ElfNum} ({Presents})";
         }
     }
 
@@ -26,11 +31,11 @@ namespace Day19
             {
                 for (int i = 0; i < elves.Count; i++)
                 {
-                    if (!elves[i].Presents.Any())
+                    if (elves[i].Presents == 0)
                         continue;
 
                     var elfToStealFrom = (i == elves.Count - 1 ? 0 : i + 1);
-                    while (!elves[elfToStealFrom].Presents.Any())
+                    while (elves[elfToStealFrom].Presents == 0)
                     {
                         elfToStealFrom++;
 
@@ -38,10 +43,10 @@ namespace Day19
                             elfToStealFrom = 0;
                     }
 
-                    elves[i].Presents.AddRange(elves[elfToStealFrom].Presents);
-                    elves[elfToStealFrom].Presents.Clear();
+                    elves[i].Presents += elves[elfToStealFrom].Presents;
+                    elves[elfToStealFrom].Presents = 0;
 
-                    if (elves[i].Presents.Count == numElves)
+                    if (elves[i].Presents == numElves)
                     {
                         Console.WriteLine($"Elf number {elves[i].ElfNum} got all the presents");
                         return;
@@ -50,51 +55,61 @@ namespace Day19
             }
         }
 
-        static void B(List<Elf> elves, int numElves)
+        static void B(List<Elf> elvesArg, int numElves)
         {
-            while (true)
+            int i = 0;
+            var elves = new List<Elf>(elvesArg);
+            int lastCheck = -1;
+            int lastCount = -1;
+
+            while (elves.Count > 1)
             {
-                for (int i = 0; i < elves.Count; i++)
+                var elfToStealFromIndex = (i + elves.Count / 2) % elves.Count;
+                var elfToStealFrom = elves[elfToStealFromIndex];
+
+                elves.RemoveAt(elfToStealFromIndex);
+
+                if (elfToStealFromIndex > i)
+                    i++;
+
+                if (i > elves.Count - 1)
+                    i = 0;
+
+                if(elves.Count % 1000 == 0)
                 {
-                    //if (!elves[i].Presents.Any())
-                    //    continue;
+                    Console.Clear();
+                    Console.WriteLine($"Elves remaining: {elves.Count}");
 
-                    var elfToStealFrom = i + Convert.ToInt32(Math.Floor(elves.Count / 2.0));
-                    //while (!elves[elfToStealFrom].Presents.Any())
-                    //{
-                    //    elfToStealFrom++;
-
-                    //    if (elfToStealFrom > elves.Count - 1)
-                    //        elfToStealFrom = 0;
-                    //}
-
-                    elves[i].Presents.AddRange(elves[elfToStealFrom].Presents);
-
-                    elves[elfToStealFrom].Presents.Clear();
-                    elves.RemoveAt(elfToStealFrom);
-
-
-                    if (elves[i].Presents.Count == numElves)
+                    if(lastCheck != -1)
                     {
-                        Console.WriteLine($"Elf number {elves[i].ElfNum} got all the presents");
-                        return;
+                        var timeSpent = (Environment.TickCount - lastCheck) / 1000d;
+                        var removed = lastCount - elves.Count;
+                        var removedPerSecond = removed / timeSpent;
+
+                        Console.WriteLine($"Speed: {removedPerSecond:0.0} elves/sec");
                     }
+
+                    var percentageDone = ((((long)numElves - (long)elves.Count) * 1000) / (long)numElves) / 10d;
+                    Console.WriteLine($"Done: {percentageDone}%");
+
+                    lastCheck = Environment.TickCount;
+                    lastCount = elves.Count;
                 }
             }
+
+            var lastElf = elves.Single();
+            Console.WriteLine($"Elf number {lastElf.ElfNum} got all the presents");
+            return;
         }
 
         static void Main(string[] args)
         {
             var numElves = 3004953;
 
-            var elves = new List<Elf>();
-            for(int i = 0; i < numElves; i++)
-            {
-                elves.Add(new Elf(i + 1));
-            }
+            var elves = Enumerable.Range(0, numElves).Select(i => new Elf(i + 1)).ToList();
 
             A(elves, numElves);
-            //B(elves, numElves);
+            B(elves, numElves);
         }
     }
 }
