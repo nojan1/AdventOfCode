@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,37 +7,16 @@ using System.Threading.Tasks;
 
 namespace Day11
 {
-    public class Floor
+
+    public class FloorState
     {
-        public int FloorNum { get; set; }
-        public List<Component> Components { get; set; }
+        private string _serialized = string.Empty;
+        public string Serialized => string.IsNullOrEmpty(_serialized) ? (_serialized = Serialize()) : _serialized;
 
-        public Floor Clone()
-        {
-            return new Floor
-            {
-                FloorNum = FloorNum,
-                Components = Components.Select<Component, Component>(c => { if (c is RTG) { return new RTG { Element = c.Element }; } else { return new Microchip { Element = c.Element }; } }).ToList()
-            };
-        }
-
-        public override string ToString()
-        {
-            return String.Join(" ", Components.Select(c =>
-            {
-                if (c is RTG)
-                    return $"{c.Element.ToUpper().First()}G";
-                else
-                    return $"{c.Element.ToUpper().First()}M";
-            }));
-        }
-    }
-
-    public class FloorCollection
-    {
+        public int ElevatorPosition { get; set; } = 0;
         public Floor[] Floors { get; private set; }
 
-        public FloorCollection(string filename)
+        public FloorState(string filename)
         {
             var lines = File.ReadAllLines(filename).Select(t => t.Trim()).ToArray();
             Floors = new Floor[4]
@@ -50,7 +28,7 @@ namespace Day11
             };
         }
 
-        public FloorCollection(Floor[] floors)
+        public FloorState(Floor[] floors)
         {
             Floors = floors;
         }
@@ -79,9 +57,9 @@ namespace Day11
             return false;
         }
 
-        public FloorCollection Clone()
+        public FloorState Clone()
         {
-            return new FloorCollection(Floors.Select(f => f.Clone()).ToArray());
+            return new FloorState(Floors.Select(f => f.Clone()).ToArray()) { ElevatorPosition = this.ElevatorPosition };
         }
 
         public override string ToString()
@@ -93,6 +71,11 @@ namespace Day11
             }
 
             return sb.ToString();
+        }
+
+        public void ClearSerializedState()
+        {
+            _serialized = string.Empty;
         }
 
         private List<Component> ComponentsFromLine(string line)
@@ -109,6 +92,22 @@ namespace Day11
                 returnValue.Add(new Microchip { Element = microship });
 
             return returnValue;
+        }
+
+        private string Serialize()
+        {
+            var positions = new List<string>();
+            var elements = Floors.SelectMany(f => f.Components).Select(c => c.Element).Distinct().ToList();
+
+            foreach(var element in elements)
+            {
+                int generatorPosition = Floors.First(f => f.Components.Any(c => c is RTG && c.Element == element)).FloorNum;
+                int chipPosition = Floors.First(f => f.Components.Any(c => c is Microchip && c.Element == element)).FloorNum;
+
+                positions.Add($"{generatorPosition}{chipPosition}");
+            }
+
+            return $"{ElevatorPosition}|{string.Join("", positions.OrderBy(x => x))}";
         }
     }
 }

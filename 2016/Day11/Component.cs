@@ -9,18 +9,6 @@ namespace Day11
     public abstract class Component
     {
         public string Element { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            Component other = obj as Component;
-            return this.GetType() == other.GetType() && other.Element == Element;
-        }
-
-        public override int GetHashCode()
-        {
-            return Element.GetHashCode();
-        }
-
         public abstract Component Clone();
     }
 
@@ -35,6 +23,20 @@ namespace Day11
         {
             return new RTG { Element = Element };
         }
+
+        public override bool Equals(object obj)
+        {
+            RTG other = obj as RTG;
+            if (other == null)
+                return false;
+
+            return other.Element == Element;
+        }
+
+        public override int GetHashCode()
+        {
+            return $"{Element}G".GetHashCode();
+        }
     }
     public class Microchip : Component
     {
@@ -46,6 +48,20 @@ namespace Day11
         public override Component Clone()
         {
             return new Microchip { Element = Element };
+        }
+
+        public override bool Equals(object obj)
+        {
+            Microchip other = obj as Microchip;
+            if (other == null)
+                return false;
+
+            return other.Element == Element;
+        }
+
+        public override int GetHashCode()
+        {
+            return $"{Element}M".GetHashCode();
         }
     }
 }

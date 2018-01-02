@@ -7,6 +7,13 @@ using System.Threading.Tasks;
 
 namespace Day22
 {
+    enum Direction {
+        North = 0,
+        East = 1,
+        South = 2,
+        West = 3
+    }
+
     class Pair
     {
         public Drive Drive1 { get; set; }
@@ -68,7 +75,7 @@ namespace Day22
         {
             using (var writer = new StreamWriter(filename))
             {
-                if(goalDrive == null)
+                if (goalDrive == null)
                     goalDrive = driveGrid[0, driveGrid.GetLength(1) - 1];
 
                 for (int y = 0; y < driveGrid.GetLength(0); y++)
@@ -84,25 +91,32 @@ namespace Day22
                             writer.Write(" ");
                         }
 
-                        if (y == goalDrive.GridY && x == goalDrive.GridX)
+                        if (visited.Any(v => v.X == x && v.Y == y))
                         {
-                            writer.Write("G");
+                            writer.Write("#");
                         }
                         else
                         {
-                            if (driveGrid[y, x].Used == 0)
+                            if (y == goalDrive.GridY && x == goalDrive.GridX)
                             {
-                                writer.Write("_");
+                                writer.Write("G");
                             }
                             else
                             {
-                                if (driveGrid[y, x].Size < goalDrive.Used)
+                                if (driveGrid[y, x].Used == 0)
                                 {
-                                    writer.Write("#");
+                                    writer.Write("_");
                                 }
                                 else
                                 {
-                                    writer.Write(".");
+                                    if (driveGrid[y, x].Size < goalDrive.Used)
+                                    {
+                                        writer.Write("#");
+                                    }
+                                    else
+                                    {
+                                        writer.Write(".");
+                                    }
                                 }
                             }
                         }
@@ -138,7 +152,7 @@ namespace Day22
 
             return retval;
         }
-
+        static List<(int X, int Y)> visited = new List<(int X, int Y)>();
         static void Main(string[] args)
         {
             var drives = ParseDfOutput("input.txt");
@@ -162,11 +176,106 @@ namespace Day22
             }).Distinct().ToList();
             var driveGrid = ToGrid(drives);
 
-            PrintGridToFile(driveGrid, "grid.txt");
+            var targetDrive = drives.Where(d => d.GridY == 0).OrderByDescending(d => d.GridX).First();
+            var emptyDrive = drives.First(d => d.Used == 0);
 
+            PrintGridToFile(driveGrid, "grid.txt", targetDrive);
+
+            int numSteps = 0;
+
+            numSteps += MoveTo(driveGrid, (emptyDrive.GridX, emptyDrive.GridY), (targetDrive.GridX - 1, targetDrive.GridY));
+            PrintGridToFile(driveGrid, "grid2.txt", targetDrive);
+
+            numSteps += MoveTo(driveGrid, (targetDrive.GridX, targetDrive.GridY), (0, 0));
+            PrintGridToFile(driveGrid, "grid3.txt", targetDrive);
+
+            Console.WriteLine($"How about {numSteps} steps?");
 
         }
 
+        static void Swap(Drive[,] driveGrid, int y1, int x1, int y2, int x2)
+        {
+            if (driveGrid[y1, x1].Used > driveGrid[y2, x2].Size || driveGrid[y2, x2].Used > driveGrid[y1, x1].Size)
+                throw new Exception("Drive to small :/");
 
+            int temp = driveGrid[y1, x1].Used;
+            driveGrid[y1, x1].Used = driveGrid[y2, x2].Used;
+            driveGrid[y2, x2].Used = temp;
+        }
+
+        static int MoveTo(Drive[,] driveGrid, (int X, int Y) current, (int X, int Y) to)
+        {
+            int steps = 0;
+            Direction direction;
+            (int X, int Y) tempPosition;
+            visited.Add(current);
+
+            while (current.X != to.X || current.Y != to.Y)
+            {
+                direction = GetDirection(current, to);
+                tempPosition = (current.X + MovementFromDirection(direction).MoveX, current.Y + MovementFromDirection(direction).MoveY);
+
+                while (driveGrid[current.Y, current.X].Used > driveGrid[tempPosition.Y, tempPosition.X].Size || 
+                       driveGrid[tempPosition.Y, tempPosition.X].Used > driveGrid[current.Y, current.X].Size)
+                {
+                    var newDirection = ((int)direction) + (current.X > to.X ? 1 : -1);
+
+                    if (newDirection > 3)
+                        newDirection = 0;
+                    else if (newDirection < 0)
+                        newDirection = 3;
+
+                    direction = (Direction)newDirection;
+
+                    tempPosition = (current.X + MovementFromDirection(direction).MoveX, current.Y + MovementFromDirection(direction).MoveY);
+                }
+
+                Swap(driveGrid, current.Y, current.X, tempPosition.Y, tempPosition.X);
+                current = tempPosition;
+                steps++;
+
+                visited.Add(current);
+            }
+
+            return steps;
+        }
+
+        static Direction GetDirection((int X, int Y) from, (int X, int Y) to)
+        {
+            if(to.Y == from.Y)
+            {
+                if(to.X < from.X)
+                {
+                    return Direction.West;
+                }
+                else
+                {
+                    return Direction.East;
+                }
+            }
+            else if(to.Y > from.Y)
+            {
+                return Direction.South;
+            }
+            else
+            {
+                return Direction.North;
+            }
+        }
+
+        static (int MoveX, int MoveY) MovementFromDirection(Direction direction)
+        {
+            switch (direction)
+            {
+                case Direction.North:
+                    return (0, -1);
+                case Direction.East:
+                    return (1, 0);
+                case Direction.South:
+                    return (0, 1);
+                default:
+                    return (-1, 0);
+            }
+        }
     }
 }
