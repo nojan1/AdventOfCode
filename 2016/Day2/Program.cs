@@ -1,4 +1,4 @@
-﻿using Day1;
+﻿using Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,66 +10,53 @@ namespace Day2
 {
     class Program
     {
+        private static readonly Dictionary<char, Direction> _translation = new Dictionary<char, Direction>
+            {
+                { 'U', Direction.North },
+                { 'R', Direction.East },
+                { 'D', Direction.South },
+                { 'L', Direction.West }
+            };
+
+        static string GetCode(char[,] keypad, (int X, int Y) start, IEnumerable<string> instructions)
+        {
+            var codeBuilder = new StringBuilder();
+            var finger = new MovingEntity { Position = start };
+            
+            foreach(var line in instructions)
+            {
+                line.Select(c => _translation[c])
+                    .ToList()
+                    .ForEach(d =>
+                    {
+                        finger.CurrentDirection = d;
+
+                        finger.MoveCurrentDirection(1, pos => pos.X >= 0 && 
+                                                              pos.Y >= 0 && 
+                                                              pos.X < keypad.GetLength(1) && 
+                                                              pos.Y < keypad.GetLength(0) && 
+                                                              keypad[pos.Y, pos.X] != ' ');
+                    });
+
+                codeBuilder.Append(keypad[finger.Position.Y, finger.Position.X]);
+            }
+
+            return codeBuilder.ToString();
+        }
+
+
         static void Main(string[] args)
         {
             var input = File.ReadAllLines("input.txt");
+           
+            var keypadA = new char[,] { { '1', '2', '3' }, { '4', '5', '6' }, { '7', '8', '9' } };
+            var codeA = GetCode(keypadA, (1, 1), input);
 
-            var keyList = new List<char>();
-            var keys = new char[] { ' ', ' ', '1', ' ', ' ', ' ', '2', '3', '4', ' ', '5', '6', '7', '8', '9', ' ', 'A', 'B', 'C', ' ', ' ', ' ', 'D', ' ', ' ' };
-            var position = new Position { X = 1, Y = 1 };
-            var badPositions = new List<Position>
-            {
-                new Position { X = 0, Y = 0 },
-                new Position { X = 1, Y = 0 },
-                new Position { X = 3, Y = 0 },
-                new Position { X = 4, Y = 0 },
+            var keypadB = new char[,] { { ' ', ' ', '1', ' ', ' ' }, { ' ', '2', '3', '4', ' ' }, { '5', '6', '7', '8', '9' }, { ' ', 'A', 'B', 'C', ' ' }, { ' ', ' ', 'D', ' ', ' ' } };
+            var codeB = GetCode(keypadB, (0, 2), input);
 
-                new Position { X = 0, Y = 1 },
-                new Position { X = 4, Y = 1 },
-
-                new Position { X = 0, Y = 3 },
-                new Position { X = 4, Y = 3 },
-
-                new Position { X = 0, Y = 4 },
-                new Position { X = 1, Y = 4 },
-                new Position { X = 3, Y = 4 },
-                new Position { X = 4, Y = 4 }
-            };
-
-            foreach(var line in input)
-            {
-                foreach(var command in line)
-                {
-                    var backupPosition = position.Clone();
-
-                    switch (command)
-                    {
-                        case 'U':
-                            position.Y -= 1;
-                            break;
-                        case 'R':
-                            position.X += 1;
-                            break;
-                        case 'D':
-                            position.Y += 1;
-                            break;
-                        default:
-                        case 'L':
-                            position.X -= 1;
-                            break;
-                    }
-
-                    if (badPositions.Contains(position) || position.X < 0 || position.X > 4 || position.Y < 0 || position.Y > 4)
-                    {
-                        position = backupPosition;
-                    }
-                }
-
-                var keyIndex = (position.Y * 5) + position.X;
-                keyList.Add(keys[keyIndex]);
-            }
-
-            Console.WriteLine($"The code is: {string.Join("", keyList)}");
+            Console.WriteLine($"The code for A is {codeA}");
+            Console.WriteLine($"....And the real (weird) code for B is {codeB}, but hey easter bunnies are loonies");
         }
     }
 }
