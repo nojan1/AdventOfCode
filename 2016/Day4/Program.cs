@@ -20,7 +20,7 @@ namespace Day4
         {
             var allParts = encryptedString.Split(new string[] { "-" }, StringSplitOptions.RemoveEmptyEntries);
 
-            var nameParts = allParts.Take(allParts.Count() - 1);
+            var nameParts = allParts.Take(allParts.Length - 1);
             var lastPartComponents = Regex.Match(allParts.Last(), @"^(\d*)\[(\w*)\]$");
 
             SectorID = Convert.ToInt32(lastPartComponents.Groups[1].Value);
