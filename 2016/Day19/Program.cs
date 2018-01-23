@@ -75,12 +75,12 @@ namespace Day19
                 if (i > elves.Count - 1)
                     i = 0;
 
-                if(elves.Count % 1000 == 0)
+                if (elves.Count % 1000 == 0)
                 {
                     Console.Clear();
                     Console.WriteLine($"Elves remaining: {elves.Count}");
 
-                    if(lastCheck != -1)
+                    if (lastCheck != -1)
                     {
                         var timeSpent = (Environment.TickCount - lastCheck) / 1000d;
                         var removed = lastCount - elves.Count;
@@ -108,8 +108,19 @@ namespace Day19
 
             var elves = Enumerable.Range(0, numElves).Select(i => new Elf(i + 1)).ToList();
 
-            A(elves, numElves);
-            B(elves, numElves);
+            //A(elves, numElves);
+            //B(elves, numElves);
+
+            var circularCollection = new CircularLinkedCollection<Elf>(elves);
+            var node = circularCollection.FirstNode;
+
+            while (circularCollection.Count > 1)
+            {
+                node.Value.Presents += node.Opposite.Value.Presents;
+                circularCollection.Remove(node.Opposite);
+
+                node = node.Next;
+            }
         }
     }
 }
