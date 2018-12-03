@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace Day14
 {
-    class OneTimePad
+    public class OneTimePad
     {
         public string Value { get; set; }
         public int Index { get; set; }
     }
 
-    class Program
+    public class Program
     {
         const bool USEKEYSTRETCHING = true;
 
@@ -48,18 +48,17 @@ namespace Day14
             };
         }
 
-        static List<OneTimePad> CalculateOneTimePads(string salt, int count)
+        public static List<OneTimePad> CalculateOneTimePads(string salt, int count, bool useKeyStretching, int index = 1000)
         {
             var retval = new List<OneTimePad>();
             var hashBuffer = new List<OneTimePad>();
             var regex = new Regex(@"(.)\1\1");
 
-            var index = 1000;
-            hashBuffer.AddRange(Enumerable.Range(0, index).Select(i => CreatePossibleOneTimePad(salt, i, USEKEYSTRETCHING)));
+            hashBuffer.AddRange(Enumerable.Range(index - 1000, index).Select(i => CreatePossibleOneTimePad(salt, i, useKeyStretching)));
 
             while (retval.Count < count)
             {
-                hashBuffer.Add(CreatePossibleOneTimePad(salt, index++, USEKEYSTRETCHING));
+                hashBuffer.Add(CreatePossibleOneTimePad(salt, index++, useKeyStretching));
 
                 var letterMatch = regex.Match(hashBuffer.First().Value);
                 if (letterMatch.Success)
@@ -91,7 +90,7 @@ namespace Day14
         {
             var startTime = DateTime.Now;
 
-            var pads = CalculateOneTimePads("ngcjuoqr", 64);
+            var pads = CalculateOneTimePads("ngcjuoqr", 64, USEKEYSTRETCHING);
             Console.WriteLine($"Pad value 64 was found on index {pads[63].Index}");
 
             var timeTaken = DateTime.Now - startTime;

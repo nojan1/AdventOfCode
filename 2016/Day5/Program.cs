@@ -25,6 +25,7 @@ namespace Day5
             while (password.Contains('_'))
             {
                 var hashInput = doorId + (index++).ToString();
+
                 var hash = CalculateHash(hashInput);
 
                 if (hash.StartsWith("00000"))
