@@ -8,7 +8,7 @@ let rec reducePolymer (polymer:string) =
     | None -> polymer.Trim()
     | Some i -> reducePolymer (String.concat "" [polymer.Substring(0, i); polymer.Substring(i + 2)])
 
-let stripPolymer polymer unit =
+let morphPolymer polymer unit =
     System.Text.RegularExpressions.Regex.Replace(polymer, (string unit), "", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
 
 let rawPolymer = System.IO.File.ReadAllText("2018/Day5/input.txt") 
@@ -17,6 +17,6 @@ let a = Seq.length polymer
 
 let b =
     seq {'a'..'z'} |>
-    Seq.map (fun c -> reducePolymer (stripPolymer polymer c)) |>
+    Seq.map (fun c -> reducePolymer (morphPolymer polymer c)) |>
     Seq.map Seq.length |>
     Seq.min
