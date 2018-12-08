@@ -1,4 +1,3 @@
-open System.Web.UI
 type Node = {Children: Node list; Metadata: int[]; Length: int}
 
 let parseNodes (data: int[]) =
