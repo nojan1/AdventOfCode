@@ -16,12 +16,14 @@ let findSequence (requirements: Requirement[]) =
         let possibleTargets = 
             requirements |>
             Seq.filter (fun x -> x.Target <> ending && not (path.Contains(x.Target)) && path.Contains(x.Requires)) |>
+            Seq.distinctBy (fun x -> x.Target) |>
             Seq.sortBy (fun x -> x.Target) |>
             Seq.toList
 
         match possibleTargets with
         | [] -> path
-        | nextTarget::tail -> findSequenceInternal (path + nextTarget.Target) ending                             
+        //(| nextTarget::tail -> findSequenceInternal (path + nextTarget.Target) ending                             
+        | _ -> possibleTargets |> Seq.fold (fun acc elem -> findSequenceInternal (acc + elem.Target) ending) path
 
     let start = requirements |> Seq.find (fun x -> requirements |> Seq.forall (fun y -> x.Requires <> y.Target))
     let ending = requirements |> Seq.find (fun x -> requirements |> Seq.forall (fun y -> y.Requires <> x.Target))
