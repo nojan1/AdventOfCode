@@ -1,4 +1,4 @@
-open System.Windows.Forms
+
 let parsePoint (row:string) = 
     let splitPair (pair:string) =
         let parts = pair.Split ','
