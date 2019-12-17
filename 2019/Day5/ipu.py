@@ -1,13 +1,14 @@
 from collections import deque
 
 class IPU(object):
-    def __init__(self, instructions):
+    def __init__(self, instructions, inputFunction = None):
         self.input = deque()
         self.output = deque()
         self.address = 0
-        self.instructions = {i: x for i, x in enumerate(instructions)}
+        self.memory = {i: x for i, x in enumerate(instructions)}
         self.hasHalted = False
         self.relativeBase = 0
+        self.inputFunction = inputFunction
 
     def _add(self, param1, param2, param3):
         self.writeMemory(param3, self.getParamValue(param1) + self.getParamValue(param2))
@@ -16,7 +17,10 @@ class IPU(object):
         self.writeMemory(param3, self.getParamValue(param1) * self.getParamValue(param2))
 
     def _store(self, param1):
-        self.writeMemory(param1, self.input.pop())
+        if self.inputFunction != None and len(self.input) == 0:
+            self.writeMemory(param1, self.inputFunction())
+        else:
+            self.writeMemory(param1, self.input.pop())
 
     def _output(self, param1):
         self.output.appendleft(self.getParamValue(param1))
@@ -46,20 +50,20 @@ class IPU(object):
 
     def getParamValue(self, param):
         if param[1] == '0':
-            return self.instructions[param[0]] if param[0] in self.instructions else 0
+            return self.memory[param[0]] if param[0] in self.memory else 0
         elif param[1] == '1':
             return param[0]
         else:
             address = self.relativeBase + param[0]
-            return self.instructions[address] if address in self.instructions else 0
+            return self.memory[address] if address in self.memory else 0
 
     def writeMemory(self, writeParam, value):
         if writeParam[1] == '0':
-            self.instructions[writeParam[0]] = value
+            self.memory[writeParam[0]] = value
         elif writeParam[1] == '2':
-            self.instructions[writeParam[0] + self.relativeBase] = value
+            self.memory[writeParam[0] + self.relativeBase] = value
         else:
-            raise Exception('Unsupported write mode %s at address %i in opcode %i' % (writeParam[1], self.address, self.instructions[self.address]))
+            raise Exception('Unsupported write mode %s at address %i in opcode %i' % (writeParam[1], self.address, self.memory[self.address]))
 
     def runStep(self):
         opcodeLookup = {
@@ -74,11 +78,11 @@ class IPU(object):
             9: (1, self._setRelativeBase)
         }
 
-        if self.address > len(self.instructions) - 1:
+        if self.address > len(self.memory) - 1:
             self.hasHalted = True
             return False
 
-        rawOpcode = str(self.instructions[self.address]).zfill(5)
+        rawOpcode = str(self.memory[self.address]).zfill(5)
         opcode = int(rawOpcode[-2::])
 
         if opcode == 99:
@@ -90,7 +94,7 @@ class IPU(object):
         lookedUpOpCode = opcodeLookup[opcode]
 
         paramMode = list(rawOpcode[2::-1])
-        params = [(self.instructions[self.address + 1 + i], paramMode[i]) for i in range(lookedUpOpCode[0])]
+        params = [(self.memory[self.address + 1 + i], paramMode[i]) for i in range(lookedUpOpCode[0])]
 
         if not lookedUpOpCode[1](*params):
             self.address += lookedUpOpCode[0] + 1
