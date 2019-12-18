@@ -8,7 +8,7 @@ class Visualizer(object):
         self.screen =  pygame.display.set_mode(size)
 
     def updateGridPos(self, x, y, value, redraw = True):
-        color = pygame.Color(self.colorMap[value]) if value in self.colorMap else pygame.Color.white
+        color =self.colorMap[value] if value in self.colorMap else (0,0,0)
         self.__updateGrid(x, y, color, redraw)
 
     def updateGridPosWithColor(self, x, y, color, redraw = True):
