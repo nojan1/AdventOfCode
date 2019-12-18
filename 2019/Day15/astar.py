@@ -28,11 +28,8 @@ class AStarBase(object):
                 currentNode.position[0] + diff[0],
                 currentNode.position[1] + diff[1]
             )
-
-            if self.positionOkey(childPosition):
-                return Node(currentNode, childPosition)
-            else: 
-                return None
+            
+            return Node(currentNode, childPosition) if self.positionOkey(childPosition) else None
 
         diffs = [(0,-1),(-1,0),(1,0),(0,1)]
         if mayMoveHorizontal:

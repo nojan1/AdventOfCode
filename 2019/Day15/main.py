@@ -103,6 +103,7 @@ visualizer = Visualizer((800,800), {
     5: (0,200,0)
 })
 
+visualizer.waitForKeypress()
 oxygenPosition = a(visualizer)
 
 visualizer.waitForKeypress()
