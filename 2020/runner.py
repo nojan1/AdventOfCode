@@ -53,22 +53,9 @@ def run_part(part: str, mod: Any, data: str):
 
     return rtime
 
-def get_test_data(day):
-    testFiles = glob.glob(f"files/{day}_test*")
-
-    testData = []
-    for f in testFiles:
-        with open(f, "r") as f:
-            testData.append((f.readline(), f.read()))
-
-    print(f"Discovered {len(testData)} tests")
-
-    return testData
-
-
-def get_data(day):
+def get_data(day, formatDay=True):
     # Try to find the filename
-    fname = "files/" + format_filename(day) + ".txt"
+    fname = "files/" + (format_filename(day) if formatDay else day) + ".txt"
     try:
         with open(fname, "r") as f:
             data = f.read()
@@ -84,18 +71,27 @@ def run(day, year=2020):
 
     mod = __import__(format_filename(day))
     data = get_data(day)
-    test_data = get_test_data(day)
 
     print("")
 
-    if(len(test_data) > 0):
-        pass
-    else:
-        part1Time = run_part(1, mod, data)
-        part2Time = run_part(2, mod, data)
-        if part1Time != 0 and part2Time != 0:
-            print(f"Total runtime: {format_runtime(part1Time + part2Time)}")
+    part1Time = run_part(1, mod, data)
+    part2Time = run_part(2, mod, data)
+    if part1Time != 0 and part2Time != 0:
+        print(f"Total runtime: {format_runtime(part1Time + part2Time)}")
 
+def run_tests(day, year=2020):
+    print(f"Running tests for: AOC {year} Day {day}")
+
+    mod = __import__(format_filename(day))
+    for (inputFile, expectedOutput, func) in mod.tests:
+        data = get_data(inputFile, False)
+        output = func(data)
+
+        if output == expectedOutput:
+            print(f" V - Running test got expected output ({output})")
+        else:
+            print(f" X - Ooops! Expected {expectedOutput} but got {output}!")
+            break
 
 def get_day(max_day=None):
     while True:
