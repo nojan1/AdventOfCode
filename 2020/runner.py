@@ -4,6 +4,7 @@ Author: Scoder12"""
 import time
 import math
 from typing import Any
+import glob
 
 def format_filename(day):
     # You can customize this to your liking.
@@ -52,6 +53,18 @@ def run_part(part: str, mod: Any, data: str):
 
     return rtime
 
+def get_test_data(day):
+    testFiles = glob.glob(f"files/{day}_test*")
+
+    testData = []
+    for f in testFiles:
+        with open(f, "r") as f:
+            testData.append((f.readline(), f.read()))
+
+    print(f"Discovered {len(testData)} tests")
+
+    return testData
+
 
 def get_data(day):
     # Try to find the filename
@@ -62,7 +75,7 @@ def get_data(day):
     except Exception as e:
         raise ValueError(f"Unable to read file {fname}") from e
 
-    print(f"Loaded puzzle input from {fname}\n")
+    print(f"Loaded puzzle input from {fname}")
     return data
 
 
@@ -71,11 +84,17 @@ def run(day, year=2020):
 
     mod = __import__(format_filename(day))
     data = get_data(day)
+    test_data = get_test_data(day)
 
-    part1Time = run_part(1, mod, data)
-    part2Time = run_part(2, mod, data)
-    if part1Time != 0 and part2Time != 0:
-        print(f"Total runtime: {format_runtime(part1Time + part2Time)}")
+    print("")
+
+    if(len(test_data) > 0):
+        pass
+    else:
+        part1Time = run_part(1, mod, data)
+        part2Time = run_part(2, mod, data)
+        if part1Time != 0 and part2Time != 0:
+            print(f"Total runtime: {format_runtime(part1Time + part2Time)}")
 
 
 def get_day(max_day=None):
