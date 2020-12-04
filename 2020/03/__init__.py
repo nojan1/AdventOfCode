@@ -17,10 +17,12 @@ def check_for_slope(grid, xDiff, yDiff):
 
     return num_trees
 
+#data is the raw contents of the input file
 def part1(data):
     grid = parse_grid(data)
     return check_for_slope(grid, 3, 1)
 
+#data is the raw contents of the input file
 def part2(data):
     grid = parse_grid(data)
     values = [
