@@ -10,7 +10,6 @@ def format_filename(day):
     # You can customize this to your liking.
     return str(day).zfill(2)
 
-
 def format_runtime(ms):
     # You can customize this to your liking
 
@@ -30,7 +29,6 @@ def format_runtime(ms):
       return f'{whole_sec}s ' + format_runtime(rem_ms)
     # Minutes (hopefully it doesn't get to this point lol)
     return f"{math.floor(sec / 60)}m " + format_runtime((sec % 60)* 1000)
-
 
 def run_part(part: str, mod: Any, data: str):
     funcname = f'part{part}'
