@@ -59,12 +59,13 @@ def part1(data):
 def part2(data):
     def follow_waypoints(instructions):
         def rotate_waypoint(degrees, waypointX, waypointY):
-            currentAngle = math.atan2(waypointY, waypointX)
-            newAngle = currentAngle + math.radians(degrees)
-            distance = math.sqrt(waypointX**2 + waypointY**2)
-            newX = math.cos(newAngle) * distance
-            newY = math.sin(newAngle) * distance
-            return (int(newX), int(newY))
+            times = int(degrees / 90)
+            for i in range(times):
+                backup = waypointY
+                waypointY = waypointX
+                waypointX = -backup
+
+            return waypointX, waypointY
         
         waypointX = 10
         waypointY = -1
