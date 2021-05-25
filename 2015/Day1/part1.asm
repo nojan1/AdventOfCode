@@ -22,13 +22,30 @@ _go_down:
 	jp _check_character
 
 the_end:
-	ld a, d
-	call PrintNum8
-	ld a, e
-	call PrintNum8
+	ld h, d
+	ld l, e
+	call DispHL
 	call NewLine	
 
 	ret
+
+DispHL:
+	ld	bc,-10000
+	call	Num1
+	ld	bc,-1000
+	call	Num1
+	ld	bc,-100
+	call	Num1
+	ld	c,-10
+	call	Num1
+	ld	c,-1
+Num1:	ld	a,'0'-1
+Num2:	inc	a
+	add	hl,bc
+	jr	c,Num2
+	sbc	hl,bc
+	call 	&BB5A
+	ret 
 
 PrintNum8:
 	ld b, 8
@@ -53,6 +70,14 @@ _done
 _exit:
 	pop af
 	ret
+
+PrintString:
+	ld a, (hl)
+	cp 0
+	ret z
+	inc hl
+	call &BB5A ; Firmware, print A to screen as ascii
+	jr PrintString
 
 NewLine:
 	ld a, 13
