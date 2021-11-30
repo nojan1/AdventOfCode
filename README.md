@@ -15,7 +15,8 @@ The following is a listing of progress done for each year.
 | 2017 | Done  |  [folder for 2017](https://github.com/nojan1/AdventOfCode/tree/master/2017) |
 | 2018 | In progress  |  [folder for 2018](https://github.com/nojan1/AdventOfCode/tree/master/2018) |
 | 2019 | In progress  |  [folder for 2019](https://github.com/nojan1/AdventOfCode/tree/master/2019) |
-| 2020 | In progress  |  [folder for 2019](https://github.com/nojan1/AdventOfCode/tree/master/2020) |
+| 2020 | In progress  |  [folder for 2012](https://github.com/nojan1/AdventOfCode/tree/master/2020) |
+| 2021 | In progress  |  [fodler for 2021](https://github.com/nojan1/AdventOfCode/tree/masster/2021) |)
 
 --------------------------
 **Hugh thanks to [Eric Wastl](http://was.tl/) for creating [AdventOfCode](http://adventofcode.com)** 
