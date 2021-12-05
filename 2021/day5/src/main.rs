@@ -1,6 +1,4 @@
 use std::str::FromStr;
-use std::fs::File;
-use std::io::Write;
 
 fn main() {
     println!("Answer to A: {}", part_a("day5/input.txt"));
@@ -16,10 +14,10 @@ struct Line {
 
 impl Line {
     fn new(p0: (i32, i32), p1: (i32, i32)) -> Line {
-        if p0.0 == p1.0 || p0.1 == p1.1 {
-            let from = if p0.0 < p1.0 || p0.1 < p1.1 { p0 } else { p1 };
-            let to = if p0.0 < p1.0 || p0.1 < p1.1 { p1 } else { p0 };
+        let from = if p0.0 < p1.0 || p0.1 < p1.1 { p0 } else { p1 };
+        let to = if p0.0 < p1.0 || p0.1 < p1.1 { p1 } else { p0 };
 
+        if p0.0 == p1.0 || p0.1 == p1.1 {
             Line {
                 from,
                 to,
@@ -27,12 +25,12 @@ impl Line {
                 m: 0,
             }
         } else {
-            let k = (p0.1 - p1.1) / (p0.0 - p1.0);
-            let m = p1.1 - (k * p1.0);
+            let k = (from.1 - to.1) / (from.0 - to.0);
+            let m = to.1 - (k * to.0);
 
             Line {
-                from: p0,
-                to: p1,
+                from,
+                to,
                 k: k,
                 m: m,
             }
@@ -47,32 +45,14 @@ impl Line {
 
             return does_cross;
         } else {
+            if (point.0 < self.from.0 && point.0 < self.to.0) || 
+                (point.0 > self.to.0 && point.0 > self.from.0) || 
+                (point.1 < self.from.1 && point.1 < self.to.1) || 
+                (point.1 > self.from.1 && point.1 > self.to.1) {
+                return false;
+            }
+
             return point.1 == (point.0 * self.k) + self.m;
-
-            // if point.0 < self.from.0
-            //     || point.0 > self.to.0
-            //     || point.1 < self.from.1
-            //     || point.1 > self.to.1
-            // {
-            //     return false;
-            // }
-
-            // let my_k = (self.from.1 - self.to.1) / (self.from.0 - self.to.0);
-            // let point_k = if self.from.0 == point.0 {
-            //     (self.to.1 - point.1) / (self.to.0 - point.0)
-            // } else {
-            //     (self.from.1 - point.1) / (self.from.0 - point.0)
-            // };
-
-            // let does_overlap = my_k.abs() == point_k.abs();
-
-            // if does_overlap {
-            //     println!(
-            //         "my_k: {:?}, line_k: {:?}, does_overlap: {:?}",
-            //         my_k, point_k, does_overlap
-            //     );
-            // }
-            // return does_overlap;
         }
     }
 }
@@ -95,7 +75,6 @@ impl FromStr for Line {
 
 fn count_overlaps(filename: &str, include_horizontal: bool) -> u32 {
     let lines = aoc::read_into::<Line>(filename);
-    let mut file = File::create("grid.txt").unwrap();
 
     let mut point_count = 0;
     let mut iter = aoc::grid_iterate(1000,1000);
@@ -113,12 +92,6 @@ fn count_overlaps(filename: &str, include_horizontal: bool) -> u32 {
 
         if num_lines_crosses >= 2 {
             point_count += 1;
-        }
-
-        if num_lines_crosses == 0 {
-            file.write_all(b" ").unwrap();
-        }else{
-            file.write_all(num_lines_crosses.to_string().as_bytes()).unwrap();
         }
     }
 
