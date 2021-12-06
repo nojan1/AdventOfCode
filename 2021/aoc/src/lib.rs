@@ -1,7 +1,6 @@
 use std::fs;
 use std::str::FromStr;
 use std::fmt::Debug;
-use std::ops::{Add};
 
 pub fn read_grid(filename: &str) -> Vec<Vec<char>>{
     fs::read_to_string(filename).unwrap()
@@ -13,6 +12,13 @@ pub fn read_grid(filename: &str) -> Vec<Vec<char>>{
 pub fn read_ints(filename: &str) -> Vec<u32> {
     fs::read_to_string(filename).unwrap()
         .lines()
+        .map(|x| x.parse().expect("Not an integer"))
+        .collect()
+}
+
+pub fn read_int_list(filename: &str) -> Vec<u32> {
+    fs::read_to_string(filename).unwrap()
+        .split(",")
         .map(|x| x.parse().expect("Not an integer"))
         .collect()
 }

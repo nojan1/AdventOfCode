@@ -51,15 +51,8 @@ fn sift_numbers(mut data: Vec<Vec<char>>, sift_on_most_common: bool) -> u32 {
             );
 
             if data.len() == 1 {
-                let mut ret = 0;
-
-                for x in 0..digit_length {
-                    if data[0][x] == '1'{
-                        ret += 1 << (digit_length - x - 1);
-                    }
-                }
-
-                return ret
+                let data_string = data[0].clone().into_iter().collect::<String>();
+                return u32::from_str_radix(&data_string[..], 2).unwrap();
             }
         }
     }
