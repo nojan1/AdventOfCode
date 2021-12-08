@@ -1,3 +1,5 @@
+use aoc;
+
 fn main() {
     println!("Answer to A: {}", part_a("day1/input.txt"));
     println!("Answer to B: {}", part_b("day1/input.txt"));
