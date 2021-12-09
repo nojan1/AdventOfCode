@@ -37,6 +37,13 @@ pub fn read_into<T: FromStr>(filename: &str) -> Vec<T> where <T as FromStr>::Err
         .collect()
 }
 
+pub fn read_grid_into<T: FromStr>(filename: &str) -> Vec<Vec<T>> where <T as FromStr>::Err: Debug {
+    fs::read_to_string(filename).unwrap()
+        .lines()
+        .map(|x| x.chars().map(|c| str::parse(&c.to_string()).unwrap()).collect())
+        .collect::<Vec<Vec<T>>>()
+} 
+
 pub fn grid_iterate(width: u32, height: u32) -> impl std::iter::Iterator<Item = (i32,i32)> 
 {
     let mut x = 0;
