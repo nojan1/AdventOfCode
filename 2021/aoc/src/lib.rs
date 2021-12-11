@@ -2,6 +2,9 @@ use std::fs;
 use std::str::FromStr;
 use std::fmt::Debug;
 
+mod grid;
+pub use crate::grid::*;
+
 pub fn read_grid(filename: &str) -> Vec<Vec<char>>{
     fs::read_to_string(filename).unwrap()
         .lines()
