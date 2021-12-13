@@ -58,8 +58,8 @@ impl<T: FromStr> Grid<'_, T> where <T as FromStr>::Err: Debug {
         neighbours
     }
 
-    pub fn iter_mut(&self) -> std::collections::hash_map::ValuesMut<(usize,usize), GridItem<T>>
-    {
-        self.items.values_mut()
-    }
+    // pub fn iter_mut(&self) -> std::collections::hash_map::ValuesMut<(usize,usize), GridItem<T>>
+    // {
+    //     self.items.values_mut()
+    // }
 }

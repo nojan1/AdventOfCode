@@ -8,10 +8,6 @@ fn is_opening_character(c: char) -> bool {
     c == '(' || c == '[' || c == '{' || c == '<'
 }
 
-fn is_closing_character(c: char) -> bool {
-    c == ')' || c == ']' || c == '}' || c == '>'
-}
-
 fn get_closing_character(open: char) -> char {
     match open {
         '(' => ')',
