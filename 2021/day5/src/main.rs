@@ -120,9 +120,3 @@ mod tests {
         assert_eq!(part_b("input_example.txt"), 12);
     }
 }
-
-
-/*
-
-31199 to high
-*/
