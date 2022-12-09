@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-$score = 0;
+my $score = 0;
 
 sub GetScoreForPlayedMoved {
   my ($move) = @_;
