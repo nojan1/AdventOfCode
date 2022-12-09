@@ -3,6 +3,8 @@
 use strict;
 use v5.10;
 
+use List::Util qw(min);
+
 my @paths = ();
 my @knownDirectories = ("/");
 my @files = ();
@@ -87,6 +89,6 @@ for my $dir (@knownDirectories) {
 print "A: $dirSizeSum \n";
 
 my $requiredSpace = 30000000 - (70000000 - $rootSize);
-my @possibleDirectories = sort {$a <=> $b} grep { $_ > $requiredSpace} @directorySizes;
+my $minSize = min grep { $_ > $requiredSpace} @directorySizes;
 
-print "B: @possibleDirectories[0] \n"
+print "B: $minSize \n"
