@@ -18,25 +18,31 @@ cat > main.php <<EOF
     Advent of code $YEAR day $1
 */
 
-\$inputfile="input";
-
-function step1() {
+function step1(\$inputFile) {
     //Implementation for step 1 goes here
 
     return "";
 }
 
-function step2() {
+function step2(\$inputFile) {
     //Implementation for step 2 goes here
 
     return "";
 }
 
-echo "Running Advent of code $YEAR day $1";
+echo "Running Advent of code $YEAR day $1\n";
 
-//assert(step1() == "")
-//assert(step2() == "")
+//\$step1Result = step1("example_input");
+//assert(\$step1Result == "", "Step 1 returned \$step1Result which was incorrect!\n");
 
+//\$step2Result = step2("example_input");
+//assert(\$step2Result == "", "Step 2 returned \$step2Result which was incorrect!\n");
+
+\$step1 = step1("input");
+echo "Step1: {\$step1}\n";
+
+\$step2 = step2("input");
+echo "Step2: {\$step2}\n";
 EOF
 
 echo "Successfully bootstrapped day $1 for $YEAR"
