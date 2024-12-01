@@ -76,3 +76,4 @@ echo "Step1: {$step1}\n";
 
 $step2 = step2("input");
 echo "Step2: {$step2}\n";
+if($step2 <= 8123119) { echo "To low!", PHP_EOL; }
