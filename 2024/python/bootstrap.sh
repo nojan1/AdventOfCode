@@ -26,7 +26,7 @@ def step1(inputFile):
 
     return ""
 
-def step2(inputFile)
+def step2(inputFile):
     # Implementation for step 2 goes here
 
     return ""
