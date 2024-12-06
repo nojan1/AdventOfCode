@@ -35,12 +35,6 @@ print("Running Advent of code $YEAR day $1\n")
 
 inputFile = fileinput.input(encoding="utf-8")
 
-#\$step1Result = step1("example_input")
-#assert(\$step1Result == "", "Step 1 returned \$step1Result which was incorrect!\n")
-
-#\$step2Result = step2("example_input")
-#assert(\$step2Result == "", "Step 2 returned \$step2Result which was incorrect!\n")
-
 step1Result = step1(inputFile)
 print(f"Step1: {step1Result}")
 
